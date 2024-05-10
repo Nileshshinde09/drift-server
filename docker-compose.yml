@@ -1,0 +1,46 @@
+version: "3.9"
+
+services:
+  mongo_db:
+    container_name: drift_database_container
+    image: mongo:latest
+    restart: always
+    volumes:
+      - mongo_db:/data/db
+
+  redis_database:
+    image: redis/redis-stack:latest
+    restart: always
+    ports:
+      - 6379:6379
+      - 8001:8001
+    volumes:
+      - redis_data:/data
+
+  app_server:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    # ports:
+    #   - 8080:8000
+    env_file:
+      - .env
+    volumes:
+      - ./app:/src/app
+    depends_on:
+      - mongo_db
+      - redis_database
+
+  nginx:
+    image: nginx:latest
+    volumes:
+      - ./conf.d:/etc/nginx/conf.d
+    depends_on:
+      - app_server
+    ports:
+      - 8000:8000
+volumes:
+  mongo_db: {}
+  redis_data: {}
+  app_server: {}
+  nginx: {}
