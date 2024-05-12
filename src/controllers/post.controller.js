@@ -543,15 +543,12 @@ const getPostFeed = asyncHandler(
             404,
             "user not found , unauthorised access."
         )
-        // get all following users
-        // get all post in descending order by date
-        // add pagination in that
-        
+
         const followees = await Follows.aggregate(
             [
                 {
                     $match: {
-                        followerId: new mongoose.Schema.ObjectId(userId)
+                        followerId: new mongoose.Types.ObjectId(userId)
                     }
                 },
                 {
@@ -563,7 +560,7 @@ const getPostFeed = asyncHandler(
                         pipeline: [
                             {
                                 $project: {
-                                    _id:1,
+                                    _id: 1,
                                     username: 1,
                                     avatar: 1,
 
@@ -581,7 +578,7 @@ const getPostFeed = asyncHandler(
                                         {
                                             $match:
                                             {
-                                                followeeId: new mongoose.Schema.ObjectId(userId)
+                                                followeeId: new mongoose.Types.ObjectId(userId)
                                             }
                                         }
                                     ]
@@ -608,10 +605,10 @@ const getPostFeed = asyncHandler(
                             },
                             {
                                 $project: {
-                                    _id:1,
+                                    _id: 1,
                                     username: 1,
                                     avatar: 1,
-                                    isFollowing: 1
+                                    isFollower: 1
                                 }
                             }
 
@@ -634,12 +631,78 @@ const getPostFeed = asyncHandler(
                         newRoot: "$followee",
                     },
                 },
-                
+                {
+                    $lookup: {
+
+                        from: "posts",
+                        localField: "_id",
+                        foreignField: "ownerId",
+                        as: "followeesPosts"
+                    }
+                },
 
 
             ]
         )
-        console.log(followees[0]);
+        if (!followees)
+            return res
+                .status(200)
+                .json(
+                    new ApiResponse(
+                        404,
+                        {
+                            followees: null
+                        },
+                        "Post with attachments removed successfully!"
+                    )
+                )
+
+        //Custom feed post creator function 
+        const createPostFeed = (posts) => {
+            let postFeed = [];
+
+            posts.forEach(user => {
+                if (user.followeesPosts.length > 0) {
+                    let latestPost = user.followeesPosts;
+                    let postWithUserInfo =[]
+                        latestPost.map((newPost)=>{
+                        postWithUserInfo.push(
+                            {
+                                ...newPost,
+                                creator:{
+                                    _id: user._id,
+                                    username: user.username,
+                                    avatar: user.avatar,
+                                    isFollower: user.isFollower
+                                }
+
+                            }
+                        )
+                       
+                    })
+                    postFeed.push(postWithUserInfo);
+                }
+            });
+
+            return postFeed.flatMap(list => list).sort((a, b) => {
+                return new Date(b.updatedAt) - new Date(a.updatedAt)
+            })
+        }
+
+        // Assuming 'followees' is your list of users' data
+        let latestPosts = createPostFeed(followees);
+        console.log(latestPosts)
+        return res
+        .status(200)
+        .json(
+            new ApiResponse(
+                200,
+                {
+                    followees: latestPosts
+                },
+                "Feed Posts fetched  successfully!"
+            )
+        )
     }
 )
 export {

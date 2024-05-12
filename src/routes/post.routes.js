@@ -37,6 +37,7 @@ router.route("/delete-post")
 
 router.route("/get-feed-posts")
     .get(verifyJWT, verifyIsOtpValidated,getPostFeed)
+    
 export default router
 
 
