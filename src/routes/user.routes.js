@@ -9,7 +9,8 @@ import {
     updateAccountDetails,
     generateOTP,
     validateOTP,
-    isUsernameUnique
+    isUsernameUnique,
+    findUsersByUsernameOrName
 } from "../controllers/user.controller.js"
 import { verifyJWT } from "../middlewares/auth.middleware.js";
 import { verifyIsOtpValidated } from "../middlewares/emailValidation.middlerware.js";
@@ -37,7 +38,7 @@ router.route("/update-account")
     .post(verifyJWT,verifyIsOtpValidated, updateAccountDetails)
 
 router.route("/generate-otp")
-    .get(verifyJWT,generateOTP)
+    .post(verifyJWT,generateOTP)
     
 router.route("/validate-otp")
     .post(verifyJWT,validateOTP)
@@ -45,4 +46,7 @@ router.route("/validate-otp")
 router.route("/check-unique-username")
     .get(isUsernameUnique)
 
+router.route("/find-user")
+    .get(verifyJWT,verifyIsOtpValidated,findUsersByUsernameOrName)
+    
 export default router

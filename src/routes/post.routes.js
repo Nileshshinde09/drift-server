@@ -9,7 +9,8 @@ import {
     updatePostContentByPostId,
     updatePostImagesByPostId,
     updatePostVideosByPostId,
-    deletePost
+    deletePost,
+    getPostFeed
 } from "../controllers/post.controller.js"
 const router = Router();
 
@@ -34,6 +35,8 @@ router.route("/update-post-video")
 router.route("/delete-post")
     .delete(verifyJWT, verifyIsOtpValidated, deletePost)
 
+router.route("/get-feed-posts")
+    .get(verifyJWT, verifyIsOtpValidated,getPostFeed)
 export default router
 
 

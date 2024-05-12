@@ -1,7 +1,7 @@
 import mongoose from "mongoose"
 
-const PostCommonAggregration=(userId)=> {
-    return[
+const PostCommonAggregration = (userId) => {
+    return [
         {
             $lookup: {
                 from: "comments",

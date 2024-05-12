@@ -13,6 +13,7 @@ const validateOTP = asyncHandler(
         try {
             const userId = req?.user?._id
             const { incomingOTP } = req.body;
+            console.log(incomingOTP);
             if (!userId) throw new ApiError(
                 404,
                 "User Not Found!"
@@ -40,14 +41,28 @@ const validateOTP = asyncHandler(
             )
 
             const isExpired = await otp.isOTPExpired();
-            if (isExpired) throw new ApiError(
-                401,
-                "OTP Expired!"
-            )
+            if (isExpired) return res.
+                status(200)
+                .json(
+                    new ApiResponse(
+                        400,
+                        {
+                            isExpired: true
+                        },
+                        "OTP Expired"
+                    )
+                )
             const isCorrect = await otp.isOTPCorrect(incomingOTP);
-            if (!isCorrect) throw new ApiError(
-                401,
-                "Invalid OTP"
+            if (!isCorrect) return res.
+            status(200)
+            .json(
+                new ApiResponse(
+                    400,
+                    {
+                        isInvalid : true
+                    },
+                    "OTP Expired"
+                )
             )
 
             await User.findByIdAndUpdate(
@@ -82,13 +97,72 @@ const validateOTP = asyncHandler(
     }
 )
 
+const findUsersByUsernameOrName = asyncHandler(
+    async (req, res) => {
+        const userId = req?.user?._id;
+        const { username, fullName } = req?.body;
+        if (!userId) throw new ApiError(
+            404,
+            "User not found,unauthorised access."
+        )
+        if (!username && !fullName) throw new ApiError(
+            400,
+            "Username or Name requirred to check existance of user"
+        )
+        const userResponse = await User.aggregate(
+            [
+                {
+                    $match: {
+                        $or: [
+                            {
+                                username: username && username?.toLowerCase(),
+                                emailVerified: true
+                            },
+                            {
+                                fullName: fullName && fullName,
+                                emailVerified: true
+                            }
+                        ]
+                    }
+                },
+                {
+                    $project: {
+                        username: 1,
+                        fullName: 1,
+                        avatar: 1
+                    }
+                }
+            ]
+        )
+
+
+        if (!userResponse) throw new ApiError(
+            "something went wrong fetching user from database"
+        )
+        if (!userResponse[0]) throw new ApiError(
+            "user not found"
+        )
+        return res.
+            status(200)
+            .json(
+                new ApiResponse(
+                    200,
+                    {
+                        user: userResponse[0]
+                    },
+                    "User found successfully 😊😊"
+                )
+            )
+
+    }
+)
 const createProfile = asyncHandler(
     async (req, res) => {
         const userId = req.user?._id;
         const { dob, avatar, profileBanner, bio } = req.body;
         if (!userId) throw new ApiError(
             400,
-            "User not found , unathorised access"
+            "User not found , unauthorised access"
         )
         if (
             [
@@ -237,6 +311,7 @@ const isUsernameUnique = asyncHandler(
     }
 )
 
+
 const loginUser = asyncHandler(
     async (req, res) => {
         try {
@@ -288,7 +363,7 @@ const loginUser = asyncHandler(
 
 const logoutUser = asyncHandler(
     async (req, res) => {
-        
+
         try {
             await User.findByIdAndUpdate(
                 req.user._id,
@@ -544,5 +619,6 @@ export {
     generateOTP,
     validateOTP,
     isUsernameUnique,
-    createProfile
+    createProfile,
+    findUsersByUsernameOrName
 }

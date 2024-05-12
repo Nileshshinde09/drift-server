@@ -71,5 +71,12 @@ import PostRouter from "./routes/post.routes.js"
 app.use("/api/v1/post",PostRouter)
 //-------------------------------------------------------------
 
+//Post Operations Routes
+//-------------------------------------------------------------
+import FindRouter from "./routes/find.routes.js"
+app.use("/api/v1/find",FindRouter)
+//-------------------------------------------------------------
+
+
 
 export { app };

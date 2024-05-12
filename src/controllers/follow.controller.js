@@ -3,8 +3,7 @@ import { ApiError } from "../utils/ApiError.js"
 import { ApiResponse } from "../utils/ApiResponse.js"
 import { User } from "../models/user.model.js"
 import { Follows } from "../models/follow.model.js"
-import mongoose, { Schema } from "mongoose"
-import { getMongoosePaginationOptions } from "../utils/helper.utils.js"
+import mongoose from "mongoose"
 const followOrUnfollowByUsername = asyncHandler(
     async (req, res) => {
         const follower = req.user
@@ -86,13 +85,13 @@ const followOrUnfollowByUsername = asyncHandler(
 
 const getFollowersByUsername = asyncHandler(
     async (req, res) => {
-        const username = req.params.username.toLowerCase();
+        const username = req.params.username
         const { page = 1, limit = 10 } = req.query;
         const userAggregation = await User.aggregate(
             [
                 {
                     $match: {
-                        username
+                        username: username.toLowerCase()
                     }
                 },
                 {
@@ -164,16 +163,18 @@ const getFollowersByUsername = asyncHandler(
                             {
                                 $addFields: {
                                     isFollowing: {
-                                        if: {
-                                            $gte: [
-                                                {
-                                                    $size: "$isFollowing",
-                                                },
-                                                1,
-                                            ],
-                                        },
-                                        then: true,
-                                        else: false
+                                        $cond: {
+                                            if: {
+                                                $gte: [
+                                                    {
+                                                        $size: "$isFollowing",
+                                                    },
+                                                    1,
+                                                ],
+                                            },
+                                            then: true,
+                                            else: false
+                                        }
                                     }
                                 }
                             },
@@ -218,18 +219,17 @@ const getFollowersByUsername = asyncHandler(
         )
         const followersList = await Follows.aggregatePaginate(
             followersAggregate,
-            getMongoosePaginationOptions(
-                {
-                    page,
-                    limit,
-                    customLabels: {
-                        totalDocs: "totalFollowers",
-                        docs: "followers",
-                    },
-                }
-            )
+            {
+                page: Math.max(page, 1),
+                limit: Math.max(limit, 1),
+                pagination: true,
+                customLabels: {
+                    pagingCounter: "serialNumberStartFrom",
+                    totalDocs: "totalFollowers",
+                    docs: "followers",
+                },
+            }
         )
-
         return res.
             status(200)
             .json(
@@ -243,13 +243,13 @@ const getFollowersByUsername = asyncHandler(
 )
 const getFolloweesByUsername = asyncHandler(
     async (req, res) => {
-        const username = req.params.username.toLowerCase();
+        const username = req.params.username
         const { page = 1, limit = 10 } = req.query;
         const userAggregation = await User.aggregate(
             [
                 {
                     $match: {
-                        username
+                        username: username.toLowerCase()
                     }
                 },
                 {
@@ -273,7 +273,7 @@ const getFolloweesByUsername = asyncHandler(
             "User not found"
         )
         const userId = user?._id
-        const followersAggregate = await Follows.aggregate(
+        const followeesAggregate = await Follows.aggregate(
             [
                 {
                     $match: {
@@ -312,7 +312,7 @@ const getFolloweesByUsername = asyncHandler(
                                         {
                                             $match:
                                             {
-                                                followerId: new mongoose.Schema.ObjectId(req?._id)
+                                                followerId: new mongoose.Schema.ObjectId(userId)
                                             }
                                         }
                                     ]
@@ -321,16 +321,19 @@ const getFolloweesByUsername = asyncHandler(
                             {
                                 $addFields: {
                                     isFollowing: {
-                                        if: {
-                                            $gte: [
-                                                {
-                                                    $size: "$isFollowing",
-                                                },
-                                                1,
-                                            ],
-                                        },
-                                        then: true,
-                                        else: false
+                                        $cond: {
+
+                                            if: {
+                                                $gte: [
+                                                    {
+                                                        $size: "$isFollowing",
+                                                    },
+                                                    1,
+                                                ],
+                                            },
+                                            then: true,
+                                            else: false
+                                        }
                                     }
                                 }
                             },
@@ -374,17 +377,17 @@ const getFolloweesByUsername = asyncHandler(
             ]
         )
         const followeesList = await Follows.aggregatePaginate(
-            followersAggregate,
-            getMongoosePaginationOptions(
-                {
-                    page,
-                    limit,
-                    customLabels: {
-                        totalDocs: "totalFollowees",
-                        docs: "followees",
-                    },
-                }
-            )
+            followeesAggregate,
+            {
+                page: Math.max(page, 1),
+                limit: Math.max(limit, 1),
+                pagination: true,
+                customLabels: {
+                    pagingCounter: "serialNumberStartFrom",
+                    totalDocs: "totalFollowers",
+                    docs: "followers",
+                },
+            }
         )
 
         return res.
@@ -392,7 +395,9 @@ const getFolloweesByUsername = asyncHandler(
             .json(
                 new ApiResponse(
                     200,
-                    { user, ...followeesList },
+                    {   user,
+                        ...followeesList 
+                    },
                     "followees fetched successfully"
                 )
             )

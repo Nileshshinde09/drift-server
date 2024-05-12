@@ -9,98 +9,99 @@ import { Videos } from "../models/videos.model.js"
 import { PostCommonAggregration } from "../utils/Aggregation/common/postCommonAggregation.js"
 import { Comments } from "../models/comments.model.js"
 import { Likes } from "../models/likes.model.js"
+import { User } from "../models/user.model.js"
+import { Follows } from "../models/follow.model.js"
 import { removeImageContentFromCloudinary, removeVideoContentFromCloudinary } from "../utils/cloudinary.js"
 import mongoose from "mongoose"
 const commonImageUploader = async (req) => {
-        return await Promise.all(req.files.map(async (filepath) => {
-            try {
-                const uploadedFile = await uploadOnCloudinary(filepath.path)
-                if (!uploadedFile) throw new ApiError(
-                    500,
-                    "Something went wrong while uploading image file on Cloudinary"
-                )
-                const { width, height, secure_url, asset_id, public_id, original_filename, resource_type } = uploadedFile
-                if (resource_type != "image") {
-                    throw new ApiError(
-                        400,
-                        "Resource type must be image."
-                    )
-                }
-                const uploadedImage = await Images.create({
-                    uploader: req?.user?._id,
-                    URL: secure_url,
-                    width,
-                    height,
-                    asset_id,
-                    public_id,
-                    original_filename,
-                    resource_type,
-                })
-                if (!uploadedImage) throw new ApiError(
-                    500,
-                    "Something went wrong while storing image in database !"
-                )
-                return uploadedImage
-
-            } catch (error) {
+    return await Promise.all(req.files.map(async (filepath) => {
+        try {
+            const uploadedFile = await uploadOnCloudinary(filepath.path)
+            if (!uploadedFile) throw new ApiError(
+                500,
+                "Something went wrong while uploading image file on Cloudinary"
+            )
+            const { width, height, secure_url, asset_id, public_id, original_filename, resource_type } = uploadedFile
+            if (resource_type != "image") {
                 throw new ApiError(
-                    500,
-                    error.message || "Something went wrong while uploading image file"
+                    400,
+                    "Resource type must be image."
                 )
             }
-        }))
-        
-    }
+            const uploadedImage = await Images.create({
+                uploader: req?.user?._id,
+                URL: secure_url,
+                width,
+                height,
+                asset_id,
+                public_id,
+                original_filename,
+                resource_type,
+            })
+            if (!uploadedImage) throw new ApiError(
+                500,
+                "Something went wrong while storing image in database !"
+            )
+            return uploadedImage
 
-    const commonVideoUploader = async (req)=>{
-            try 
-            {
-                if(!req.user) throw new ApiError(
-                    401,
-                    "User not found."
-                )
-                if(!req.file) throw new ApiError(
-                    404,
-                    "Video file not found, Provide file."
-                )
-                const uploadedFile = await uploadOnCloudinary(req?.file?.path)
-                if(!uploadedFile) throw new ApiError(
-                    500,
-                    "Something went wrong while uploading video file on Cloudinary"
-                )
-    
-                const {width,height,secure_url,asset_id,public_id,original_filename,resource_type} = uploadedFile
-                if( resource_type!="video" ){
-                    throw new ApiError(
-                        400,
-                        "Resource type must be Video."
-                    )
-                }
-                const uploadedVideo= await Videos.create({
-                    uploader:req?.user?._id,
-                    URL:secure_url,
-                    width,
-                    height,
-                    asset_id,
-                    public_id,
-                    original_filename,
-                    resource_type
-                })
-                if(!uploadedVideo) throw new ApiError(
-                    500,
-                    "Something went wrong while storing Video in database !"
-                )
-                return uploadedVideo
-    
-            } catch (error) {
-                throw new ApiError(
-                    500,
-                    error.message || "Something went wrong while uploading video file."
-                )
-            }
+        } catch (error) {
+            throw new ApiError(
+                500,
+                error.message || "Something went wrong while uploading image file"
+            )
         }
+    }))
 
-    
+}
+
+const commonVideoUploader = async (req) => {
+    try {
+        if (!req.user) throw new ApiError(
+            401,
+            "User not found."
+        )
+        if (!req.file) throw new ApiError(
+            404,
+            "Video file not found, Provide file."
+        )
+        const uploadedFile = await uploadOnCloudinary(req?.file?.path)
+        if (!uploadedFile) throw new ApiError(
+            500,
+            "Something went wrong while uploading video file on Cloudinary"
+        )
+
+        const { width, height, secure_url, asset_id, public_id, original_filename, resource_type } = uploadedFile
+        if (resource_type != "video") {
+            throw new ApiError(
+                400,
+                "Resource type must be Video."
+            )
+        }
+        const uploadedVideo = await Videos.create({
+            uploader: req?.user?._id,
+            URL: secure_url,
+            width,
+            height,
+            asset_id,
+            public_id,
+            original_filename,
+            resource_type
+        })
+        if (!uploadedVideo) throw new ApiError(
+            500,
+            "Something went wrong while storing Video in database !"
+        )
+        return uploadedVideo
+
+    } catch (error) {
+        throw new ApiError(
+            500,
+            error.message || "Something went wrong while uploading video file."
+        )
+    }
+}
+
+
 
 
 const createPostWithImages = asyncHandler(
@@ -157,7 +158,7 @@ const createPostWithImages = asyncHandler(
                 new ApiResponse(
                     200,
                     {
-                        CreatedPost:createdPost[0]
+                        CreatedPost: createdPost[0]
                     },
                     "Post created successfully!"
                 )
@@ -215,7 +216,7 @@ const createPostWithVideo = asyncHandler(
                 new ApiResponse(
                     200,
                     {
-                        CreatedPost:createdPost[0]
+                        CreatedPost: createdPost[0]
                     },
                     "Post created successfully!"
                 )
@@ -228,8 +229,8 @@ const getAllPost = asyncHandler(
     async (req, res) => {
         try {
             const fetchedPost = await Posts.aggregate([
-                    ...PostCommonAggregration(req?.user?._id)
-                
+                ...PostCommonAggregration(req?.user?._id)
+
             ])
             return res.
                 status(200)
@@ -237,7 +238,7 @@ const getAllPost = asyncHandler(
                     new ApiResponse(
                         200,
                         {
-                            fetchedPost:fetchedPost
+                            fetchedPost: fetchedPost
                         },
                         "Post fetched successfully!"
                     )
@@ -256,8 +257,8 @@ const getAllPost = asyncHandler(
 const updatePostContentByPostId = asyncHandler(
     async (req, res) => {
         const userId = req?.user?._id
-        const { tags, caption,postId } = req.body;
-        console.log(tags, caption,postId );
+        const { tags, caption, postId } = req.body;
+        console.log(tags, caption, postId);
         if (!userId) throw new ApiError(
             404,
             "User not found, unauthorised access"
@@ -288,7 +289,7 @@ const updatePostContentByPostId = asyncHandler(
                 }
             )
         } else if (caption) {
-            console.log("h3",_id);
+            console.log("h3", _id);
 
             updatedResponse = await Posts.findByIdAndUpdate(
                 _id,
@@ -309,8 +310,8 @@ const updatePostContentByPostId = asyncHandler(
                     _id: updatedResponse._id,
                 },
             },
-                ...PostCommonAggregration(req?.user?._id)
-            
+            ...PostCommonAggregration(req?.user?._id)
+
         ])
         return res
             .status(200)
@@ -318,7 +319,7 @@ const updatePostContentByPostId = asyncHandler(
                 new ApiResponse(
                     200,
                     {
-                        updatedPost:updatedPost[0]
+                        updatedPost: updatedPost[0]
                     }
                 )
             )
@@ -394,7 +395,7 @@ const updatePostImagesByPostId = asyncHandler(
             json(new ApiResponse(
                 200,
                 {
-                    updatedPost:updatedPost[0]
+                    updatedPost: updatedPost[0]
                 },
                 "Post image updated successfully!"
             ))
@@ -461,7 +462,7 @@ const updatePostVideosByPostId = asyncHandler(
             ApiResponse(
                 200,
                 {
-                    updatedPost:updatedPost[0]
+                    updatedPost: updatedPost[0]
                 },
                 "Post video updated successfully!"
             )
@@ -534,6 +535,113 @@ const deletePost = asyncHandler(
         }
     }
 )
+const getPostFeed = asyncHandler(
+    async (req, res) => {
+        const userId = req?.user?._id;
+        // const { page = 1, limit = 20 } = req.query;
+        if (!userId) throw new ApiError(
+            404,
+            "user not found , unauthorised access."
+        )
+        // get all following users
+        // get all post in descending order by date
+        // add pagination in that
+        
+        const followees = await Follows.aggregate(
+            [
+                {
+                    $match: {
+                        followerId: new mongoose.Schema.ObjectId(userId)
+                    }
+                },
+                {
+                    $lookup: {
+                        from: "users",
+                        localField: "followeeId",
+                        foreignField: "_id",
+                        as: "followee",
+                        pipeline: [
+                            {
+                                $project: {
+                                    _id:1,
+                                    username: 1,
+                                    avatar: 1,
+
+                                },
+
+                            },
+
+                            {
+                                $lookup: {
+                                    from: "follows",
+                                    localField: "_id",
+                                    foreignField: "followeeId",
+                                    as: "isFollower",
+                                    pipeline: [
+                                        {
+                                            $match:
+                                            {
+                                                followeeId: new mongoose.Schema.ObjectId(userId)
+                                            }
+                                        }
+                                    ]
+                                }
+                            },
+                            {
+                                $addFields: {
+                                    isFollower: {
+                                        $cond: {
+
+                                            if: {
+                                                $gte: [
+                                                    {
+                                                        $size: "$isFollower",
+                                                    },
+                                                    1,
+                                                ],
+                                            },
+                                            then: true,
+                                            else: false
+                                        }
+                                    }
+                                }
+                            },
+                            {
+                                $project: {
+                                    _id:1,
+                                    username: 1,
+                                    avatar: 1,
+                                    isFollowing: 1
+                                }
+                            }
+
+                        ]
+                    },
+                },
+                {
+                    $addFields: {
+                        followee: { $first: "$followee" },
+                    },
+                },
+                {
+                    $project: {
+                        _id: 1,
+                        followee: 1,
+                    },
+                },
+                {
+                    $replaceRoot: {
+                        newRoot: "$followee",
+                    },
+                },
+                
+
+
+            ]
+        )
+        console.log(followees[0]);
+    }
+)
 export {
     createPostWithImages,
     createPostWithVideo,
@@ -541,5 +649,7 @@ export {
     updatePostContentByPostId,
     updatePostImagesByPostId,
     updatePostVideosByPostId,
-    deletePost
+    deletePost,
+    getPostFeed
+
 }
