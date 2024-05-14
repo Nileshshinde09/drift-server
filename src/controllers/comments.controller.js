@@ -11,22 +11,24 @@ const createCommentAndUpdateCommentOnPost = asyncHandler(
             404,
             "User not found"
         )
-        if (!postId && !content) throw new ApiError(
+        if (!postId || !content) throw new ApiError(
             404,
             "Post ID and content not found"
         )
         try {
-            isCommentExist = await Comments.findOne({
+            const isCommentExist = await Comments.findOne({
                 postId: postId,
                 owner: userId
             })
             if (isCommentExist) {
-                editedComment = await Comments.findOneAndUpdate({
-                    postId: postId,
-                    content,
-                    owner: userId,
+                const editedComment = await Comments.findByIdAndUpdate(
+                    isCommentExist._id,
+                    {
+                        content:content
+                    },
+                    {new:true}
+                )
 
-                })
                 if (!editedComment) throw new ApiError(
                     400,
                     "something went wrong while updating the comment"
@@ -43,7 +45,7 @@ const createCommentAndUpdateCommentOnPost = asyncHandler(
                         )
                     )
             }
-            createdComment = await Comments.create({
+            const createdComment = await Comments.create({
                 postId: postId,
                 content,
                 owner: userId,
@@ -76,7 +78,7 @@ const createCommentAndUpdateCommentOnPost = asyncHandler(
 const createCommentAndUpdateCommentOnComment = asyncHandler(
     async (req, res) => {
         const userId = req?.user?._id
-        const { commentId, content } = req?.body;
+        const { commentId = null, content = null } = req?.body;
 
         if (!userId) throw new ApiError(
             404,
@@ -87,17 +89,18 @@ const createCommentAndUpdateCommentOnComment = asyncHandler(
             "Comment ID and content not found"
         )
         try {
-            isCommentExist = await Comments.findOne({
+            const isCommentExist = await Comments.findOne({
                 commentId,
                 owner: userId
             })
             if (isCommentExist) {
-                editedComment = await Comments.findOneAndUpdate({
-                    commentId,
-                    content,
-                    owner: userId,
-
-                })
+                const editedComment = await Comments.findByIdAndUpdate(
+                    isCommentExist._id,
+                    {
+                        content:content
+                    },
+                    {new:true}
+                )
                 if (!editedComment) throw new ApiError(
                     400,
                     "something went wrong while updating the comment"
@@ -114,7 +117,7 @@ const createCommentAndUpdateCommentOnComment = asyncHandler(
                         )
                     )
             }
-            createdComment = await Comments.create({
+            const createdComment = await Comments.create({
                 commentId,
                 content,
                 owner: userId,
@@ -160,7 +163,7 @@ const deleteCommentOnComment = asyncHandler(
             "Comment ID not found"
         )
         try {
-            isCommentExist = await Comments.findOne({
+            const isCommentExist = await Comments.findOne({
                 commentId,
                 owner: userId
             })
@@ -168,7 +171,59 @@ const deleteCommentOnComment = asyncHandler(
                 404,
                 "Comment not found"
             )
-            deletedComment = await Comments.findOneAndDelete({
+            const deletedComment = await Comments.findOneAndDelete({
+                commentId,
+                owner: userId,
+            })
+            if (!deletedComment) throw new ApiError(
+                400,
+                "something went wrong while deleting the comment"
+            )
+            return res.
+                status(200)
+                .json(
+                    new ApiResponse(
+                        200,
+                        {
+                            deletedComment
+                        },
+                        "comment updated successfully!"
+                    )
+                )
+
+        } catch (error) {
+            throw new ApiError(
+                500,
+                error?.message || "Something went wrong while creating comment instance in database"
+            )
+        }
+
+    }
+)
+
+const deleteCommenById = asyncHandler(
+    async (req, res) => {
+        const userId = req?.user?._id
+        const { commentId } = req?.body;
+
+        if (!userId) throw new ApiError(
+            404,
+            "User not found"
+        )
+        if (!commentId) throw new ApiError(
+            404,
+            "Comment ID not found"
+        )
+        try {
+            const isCommentExist = await Comments.findOne({
+                commentId,
+                owner: userId
+            })
+            if (!isCommentExist) throw new ApiError(
+                404,
+                "Comment not found"
+            )
+            const deletedComment = await Comments.findOneAndDelete({
                 commentId,
                 owner: userId,
             })
@@ -212,7 +267,7 @@ const deleteCommentOnPost = asyncHandler(
             "Post ID not found"
         )
         try {
-            isCommentExist = await Comments.findOne({
+            const isCommentExist = await Comments.findOne({
                 postId,
                 owner: userId
             })
@@ -220,7 +275,7 @@ const deleteCommentOnPost = asyncHandler(
                 404,
                 "Comment not found"
             )
-            deletedComment = await Comments.findOneAndDelete({
+            const deletedComment = await Comments.findOneAndDelete({
                 postId,
                 owner: userId,
             })
@@ -265,19 +320,19 @@ const getCommentById = asyncHandler(
             "Comment ID not found"
         )
         try {
-            isCommentExist = await Comments.findOne({
-                _id:commentId,
+            const isCommentExist = await Comments.findOne({
+                _id: commentId,
                 owner: userId
             })
             if (!isCommentExist) throw new ApiError(
                 404,
                 "Comment not found"
             )
-            commentResponse = await Comments.findOne({
-                _id:commentId,
+            const commentsResponse = await Comments.findOne({
+                _id: commentId,
                 owner: userId,
             })
-            if (!commentResponse) throw new ApiError(
+            if (!commentsResponse) throw new ApiError(
                 400,
                 "something went wrong while getting the comment"
             )
@@ -287,7 +342,7 @@ const getCommentById = asyncHandler(
                     new ApiResponse(
                         200,
                         {
-                            commentResponse
+                            commentsResponse
                         },
                         "comment retrive successfully!"
                     )
@@ -317,7 +372,7 @@ const getAllCommentsOnComment = asyncHandler(
             "Comment ID not found"
         )
         try {
-            isCommentsExist = await Comments.find({
+            const isCommentsExist = await Comments.find({
                 commentId,
                 owner: userId
             })
@@ -325,11 +380,11 @@ const getAllCommentsOnComment = asyncHandler(
                 404,
                 "Comments not found"
             )
-            commentsResponse = await Comments.find({
+            const commentsResponse = await Comments.find({
                 commentId,
                 owner: userId,
             })
-            if (!commentResponse) throw new ApiError(
+            if (!commentsResponse) throw new ApiError(
                 400,
                 "something went wrong while getting the comments"
             )
@@ -339,7 +394,7 @@ const getAllCommentsOnComment = asyncHandler(
                     new ApiResponse(
                         200,
                         {
-                            commentResponse
+                            commentsResponse
                         },
                         "comments retrive successfully!"
                     )
@@ -370,7 +425,7 @@ const getAllCommentsOnPost = asyncHandler(
             "Post ID not found"
         )
         try {
-            isCommentsExist = await Comments.find({
+            const isCommentsExist = await Comments.find({
                 postId,
                 owner: userId
             })
@@ -378,11 +433,11 @@ const getAllCommentsOnPost = asyncHandler(
                 404,
                 "Comments not found"
             )
-            commentsResponse = await Comments.find({
+            const commentsResponse = await Comments.find({
                 postId,
                 owner: userId,
             })
-            if (!commentResponse) throw new ApiError(
+            if (!commentsResponse) throw new ApiError(
                 400,
                 "something went wrong while getting the comments"
             )
@@ -392,7 +447,7 @@ const getAllCommentsOnPost = asyncHandler(
                     new ApiResponse(
                         200,
                         {
-                            commentResponse
+                            commentsResponse
                         },
                         "comments retrive successfully!"
                     )
@@ -415,5 +470,6 @@ export {
     deleteCommentOnPost,
     getCommentById,
     getAllCommentsOnComment,
-    getAllCommentsOnPost
+    getAllCommentsOnPost,
+    deleteCommenById
 }

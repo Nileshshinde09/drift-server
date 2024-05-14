@@ -77,6 +77,10 @@ import FindRouter from "./routes/find.routes.js"
 app.use("/api/v1/find",FindRouter)
 //-------------------------------------------------------------
 
-
+//comments Operations Routes
+//-------------------------------------------------------------
+import CommentsRouter from "./routes/comment.routes.js"
+app.use("/api/v1/comment",CommentsRouter)
+//--
 
 export { app };

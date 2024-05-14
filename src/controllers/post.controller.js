@@ -13,6 +13,50 @@ import { User } from "../models/user.model.js"
 import { Follows } from "../models/follow.model.js"
 import { removeImageContentFromCloudinary, removeVideoContentFromCloudinary } from "../utils/cloudinary.js"
 import mongoose from "mongoose"
+
+const processPosts = async (aggregatePosts) => {
+    try {
+        const processedPosts = await Promise.all(aggregatePosts.flatMap(user => {
+            if (user.followeesPosts.length > 0) {
+                return user.followeesPosts.map(async (newPost) => {
+                    const postWithUserInfo = {
+                        ...newPost,
+                        isFollower: user.isFollower,
+                        isbookmarked:user.isbookmarked,
+                        isliked:user.isliked,
+                        likes:user.likes,
+                        comments:user.comments,
+                        creator: {
+                            _id: user._id,
+                            username: user.username,
+                            avatar: user.avatar,
+                        },
+                    };
+                    if (!postWithUserInfo.video) {
+                        postWithUserInfo.images = await Promise.all(postWithUserInfo.images.map(async (_id) => {
+                            const img = await Images.findById(_id);
+                            return img.URL;
+                        }));
+                    } else {
+                        const v = await Videos.findById(postWithUserInfo.video);
+                        postWithUserInfo.video = v.URL;
+                    }
+                    return postWithUserInfo;
+                });
+            } else {
+                return [];
+            }
+        }));
+
+        return processedPosts.flat().sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
+    } catch (error) {
+        throw new ApiError(
+            500,
+            error.message || "Something went wrong while fetching media content URLs"
+        );
+    }
+};
+
 const commonImageUploader = async (req) => {
     return await Promise.all(req.files.map(async (filepath) => {
         try {
@@ -538,7 +582,7 @@ const deletePost = asyncHandler(
 const getPostFeed = asyncHandler(
     async (req, res) => {
         const userId = req?.user?._id;
-        // const { page = 1, limit = 20 } = req.query;
+        const { page = 1, limit = 20 } = req.query;
         if (!userId) throw new ApiError(
             404,
             "user not found , unauthorised access."
@@ -604,11 +648,99 @@ const getPostFeed = asyncHandler(
                                 }
                             },
                             {
+                                $lookup: {
+                                    from: "comments",
+                                    localField: "_id",
+                                    foreignField: "postId",
+                                    as: "comments"
+                                }
+                            },
+                            {
+                                $lookup: {
+                                    from: "likes",
+                                    localField: "_id",
+                                    foreignField: "PostId",
+                                    as: "likes"
+                                }
+                            }, {
+                                $lookup: {
+                                    from: "likes",
+                                    localField: "_id",
+                                    foreignField: "PostId",
+                                    as: "isliked",
+                                    pipeline: [
+                                        {
+                                            $match: {
+                                                likedBy: new mongoose.Types.ObjectId(userId)
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                            , {
+                                $lookup: {
+                                    from: "bookmarks",
+                                    localField: "_id",
+                                    foreignField: "PostId",
+                                    as: "isbookmarked",
+                                    pipeline: [
+                                        {
+                                            $match: {
+                                                BookmarkedBy: new mongoose.Types.ObjectId(userId)
+                                            }
+                                        }
+                                    ]
+                                }
+                            },
+                            {
+                                $addFields: {
+                                    likes: { $size: "$likes" },
+                                    comments: { $size: "$comments" },
+                                }
+                            },
+                            {
+                                $addFields: {
+                                    isliked: {
+                                        $cond: {
+                                            if: {
+                                                $gte: [
+                                                    {
+                                                        $size: "$isliked",
+                                                    },
+                                                    1,
+                                                ],
+                                            },
+                                            then: true,
+                                            else: false,
+                                        },
+                                    },
+
+                                    isbookmarked: {
+                                        $cond: {
+                                            if: {
+                                                $gte: [
+                                                    {
+                                                        $size: "$isbookmarked",
+                                                    },
+                                                    1,
+                                                ],
+                                            },
+                                            then: true,
+                                            else: false,
+                                        },
+                                    },
+                                }
+                            },
+                            {
                                 $project: {
                                     _id: 1,
                                     username: 1,
                                     avatar: 1,
-                                    isFollower: 1
+                                    isFollower: 1,
+                                    isbookmarked: 1,
+                                    isliked: 1,
+                                    likes: 1,
+                                    comments: 1
                                 }
                             }
 
@@ -633,15 +765,12 @@ const getPostFeed = asyncHandler(
                 },
                 {
                     $lookup: {
-
                         from: "posts",
                         localField: "_id",
                         foreignField: "ownerId",
                         as: "followeesPosts"
                     }
                 },
-
-
             ]
         )
         if (!followees)
@@ -656,53 +785,25 @@ const getPostFeed = asyncHandler(
                         "Post with attachments removed successfully!"
                     )
                 )
-
-        //Custom feed post creator function 
-        const createPostFeed = (posts) => {
-            let postFeed = [];
-
-            posts.forEach(user => {
-                if (user.followeesPosts.length > 0) {
-                    let latestPost = user.followeesPosts;
-                    let postWithUserInfo =[]
-                        latestPost.map((newPost)=>{
-                        postWithUserInfo.push(
-                            {
-                                ...newPost,
-                                creator:{
-                                    _id: user._id,
-                                    username: user.username,
-                                    avatar: user.avatar,
-                                    isFollower: user.isFollower
-                                }
-
-                            }
+        processPosts(followees)
+            .then((result) => {
+                return res
+                    .status(200)
+                    .json(
+                        new ApiResponse(
+                            200,
+                            { followees: result },
+                            "Feed Posts fetched successfully!"
                         )
-                       
-                    })
-                    postFeed.push(postWithUserInfo);
-                }
+                    );
+            })
+            .catch((error) => {
+                throw new ApiError(
+                    500,
+                    error.message || "Something went wrong while fetching media content URLs"
+                );
             });
 
-            return postFeed.flatMap(list => list).sort((a, b) => {
-                return new Date(b.updatedAt) - new Date(a.updatedAt)
-            })
-        }
-
-        // Assuming 'followees' is your list of users' data
-        let latestPosts = createPostFeed(followees);
-        console.log(latestPosts)
-        return res
-        .status(200)
-        .json(
-            new ApiResponse(
-                200,
-                {
-                    followees: latestPosts
-                },
-                "Feed Posts fetched  successfully!"
-            )
-        )
     }
 )
 export {
