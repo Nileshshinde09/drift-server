@@ -3,7 +3,7 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import { limiter } from "./middlewares/rateLimiter.middleware.js";
 import requestIp from "request-ip";
-
+console.log("hello world");
 const app = express();
 
 app.use(cors({
