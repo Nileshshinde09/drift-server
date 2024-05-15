@@ -4,18 +4,19 @@ import { ApiResponse } from "../utils/ApiResponse.js"
 import { Bookmark } from "../models/bookmarks.model.js"
 const BookmarkAndUnbookmark = asyncHandler(
     async (req, res) => {
-        const { PostId } = req.body;
+        const { postId } = req.body;
         if (!req.user) throw new ApiError(
             404,
             "User not found, unauthorised access"
         )
-        if (!PostId) throw new ApiError(
+        if (!postId) throw new ApiError(
             404,
-            "User not found, unauthorised access"
+            "Post Id not found . 😰😰"
         )
+        
         try {
             const isBookmarkPresent = await Bookmark.findOne({
-                PostId,
+                PostId:postId,
                 BookmarkedBy: req?._id
             })
             if (isBookmarkPresent) {
@@ -38,7 +39,7 @@ const BookmarkAndUnbookmark = asyncHandler(
             }
             const bookmarkResponse = await Bookmark.create(
                 {
-                    PostId,
+                    PostId:postId,
                     BookmarkedBy: req?._id
                 }
             )

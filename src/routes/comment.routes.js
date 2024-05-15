@@ -30,12 +30,12 @@ router.route("/C/delete-comment-on-post")
     .delete(verifyJWT, verifyIsOtpValidated, deleteCommentOnPost)
 
 router.route("/C/get-comment-by-Id")
-    .get(verifyJWT, verifyIsOtpValidated, getCommentById)
+    .post(verifyJWT, verifyIsOtpValidated, getCommentById)
 
 router.route("/C/get-comments-on-comment")
-    .get(verifyJWT, verifyIsOtpValidated, getAllCommentsOnComment)
+    .post(verifyJWT, verifyIsOtpValidated, getAllCommentsOnComment)
 
 router.route("/C/get-comments-on-post")
-    .get(verifyJWT, verifyIsOtpValidated, getAllCommentsOnPost)
+    .post(verifyJWT, verifyIsOtpValidated, getAllCommentsOnPost)
 
 export default router

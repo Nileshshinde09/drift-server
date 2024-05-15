@@ -81,6 +81,12 @@ app.use("/api/v1/find",FindRouter)
 //-------------------------------------------------------------
 import CommentsRouter from "./routes/comment.routes.js"
 app.use("/api/v1/comment",CommentsRouter)
-//--
+//-------------------------------------------------------------
+
+//Bookmarks Operations Routes
+//-------------------------------------------------------------
+import BookmarkRouter from "./routes/bookmark.routes.js"
+app.use("/api/v1/bookmark",BookmarkRouter)
+//-------------------------------------------------------------
 
 export { app };

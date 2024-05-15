@@ -2,11 +2,11 @@ import { asyncHandler } from "../utils/asyncHandler.js"
 import { ApiError } from "../utils/ApiError.js"
 import { ApiResponse } from "../utils/ApiResponse.js"
 import { Comments } from "../models/comments.model.js"
+import mongoose from "mongoose"
 const createCommentAndUpdateCommentOnPost = asyncHandler(
     async (req, res) => {
         const userId = req?.user?._id
         const { postId, content } = req?.body;
-
         if (!userId) throw new ApiError(
             404,
             "User not found"
@@ -24,9 +24,9 @@ const createCommentAndUpdateCommentOnPost = asyncHandler(
                 const editedComment = await Comments.findByIdAndUpdate(
                     isCommentExist._id,
                     {
-                        content:content
+                        content: content
                     },
-                    {new:true}
+                    { new: true }
                 )
 
                 if (!editedComment) throw new ApiError(
@@ -97,9 +97,9 @@ const createCommentAndUpdateCommentOnComment = asyncHandler(
                 const editedComment = await Comments.findByIdAndUpdate(
                     isCommentExist._id,
                     {
-                        content:content
+                        content: content
                     },
-                    {new:true}
+                    { new: true }
                 )
                 if (!editedComment) throw new ApiError(
                     400,
@@ -426,18 +426,48 @@ const getAllCommentsOnPost = asyncHandler(
         )
         try {
             const isCommentsExist = await Comments.find({
-                postId,
-                owner: userId
+                postId
             })
-            if (!isCommentsExist) throw new ApiError(
-                404,
-                "Comments not found"
+            if (isCommentsExist.length <= 0)
+                return res
+                    .status(404)
+                    .json(
+                        new ApiResponse(
+                            404,
+                            [],
+                            "Comments not found"
+                        )
+                    )
+
+            const commentsResponse = await Comments.aggregate(
+                [
+                    {
+                        $match: {
+                            postId: new mongoose.Types.ObjectId(postId)
+                        }
+                    },
+                    {
+                        $lookup: {
+                            from: "users",
+                            localField: "owner",
+                            foreignField: "_id",
+                            as: "commentor",
+                            pipeline: [
+                                {
+                                    $project: {
+                                        _id: 1,
+                                        username: 1,
+                                        email: 1,
+                                        avatar: 1
+                                    }
+                                }
+                            ]
+                        }
+                    },
+
+                ]
             )
-            const commentsResponse = await Comments.find({
-                postId,
-                owner: userId,
-            })
-            if (!commentsResponse) throw new ApiError(
+            if (!commentsResponse[0]) throw new ApiError(
                 400,
                 "something went wrong while getting the comments"
             )
