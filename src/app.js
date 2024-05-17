@@ -89,4 +89,16 @@ import BookmarkRouter from "./routes/bookmark.routes.js"
 app.use("/api/v1/bookmark",BookmarkRouter)
 //-------------------------------------------------------------
 
+//Likes Operations Routes
+//-------------------------------------------------------------
+import LikesRouter from "./routes/likes.routes.js"
+app.use("/api/v1/likes",LikesRouter)
+//-------------------------------------------------------------
+
+//Profile Operations Routes
+//-------------------------------------------------------------
+import ProfileRouter from "./routes/profile.routes.js"
+app.use("/api/v1/profile",ProfileRouter)
+//-------------------------------------------------------------
+
 export { app };

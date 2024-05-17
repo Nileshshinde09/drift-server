@@ -9,14 +9,16 @@ const PostCommonAggregration = (userId) => {
                 foreignField: "postId",
                 as: "comments"
             }
-        }, {
+        },
+        {
             $lookup: {
                 from: "likes",
                 localField: "_id",
                 foreignField: "PostId",
                 as: "likes"
             }
-        }, {
+        },
+        {
             $lookup: {
                 from: "likes",
                 localField: "_id",
@@ -30,8 +32,8 @@ const PostCommonAggregration = (userId) => {
                     }
                 ]
             }
-        }
-        , {
+        },
+        {
             $lookup: {
                 from: "bookmarks",
                 localField: "_id",

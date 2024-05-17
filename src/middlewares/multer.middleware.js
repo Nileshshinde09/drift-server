@@ -13,6 +13,6 @@ export const  upload = multer({
     storage,
 })
 
-export const uploadMultiple =multer({
+export const uploadMultiple = multer({
     storage,
 }).array('uploadedImages');

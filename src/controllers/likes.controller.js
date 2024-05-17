@@ -3,10 +3,10 @@ import { ApiError } from "../utils/ApiError.js"
 import { ApiResponse } from "../utils/ApiResponse.js"
 import {Likes} from "../models/likes.model.js"
 
-const likeDislikeAndUnlikePost =asyncHandler(
+const likeAndUnlikePost =asyncHandler(
     async (req,res)=>{
         const userId = req?.user?._id
-        const postId = req?.body;
+        const {postId} = req?.body;
         if(!userId) throw new ApiError(
             404,
             "User not found"
@@ -16,15 +16,20 @@ const likeDislikeAndUnlikePost =asyncHandler(
             "Post ID not found"
         )
         try {
-            isLikeExist = await Likes.findOne({
-                postId:postId,
+            const isLikeExist = await Likes.findOne({
+                PostId:postId,
                 likedBy:userId
             })
+            
             if(isLikeExist){
-                unlike = await Likes.findOneAndDelete({
-                    postId:postId,
+                const unlike = await Likes.findOneAndDelete({
+                    PostId:postId,
                     likedBy:userId
                 })
+                if(!unlike) throw new ApiError(
+                    400,
+                    "something went wrong while unlikeing post"
+                )
                 return res.
                 status(200)
                 .json(
@@ -33,12 +38,12 @@ const likeDislikeAndUnlikePost =asyncHandler(
                         {
                             like:false
                         },
-                        "Unlike post successfully!"
+                        "Unlike post successfully! 🙁🙁"
                     )
                 )
             }
-            createdLike= await Likes.create({
-                postId:postId,
+            const createdLike= await Likes.create({
+                PostId:postId,
                 likedBy:userId
             })
             if(!createdLike) throw new ApiError(
@@ -53,7 +58,7 @@ const likeDislikeAndUnlikePost =asyncHandler(
                         {
                             like:true
                         },
-                        "like post successfully!"
+                        "like post successfully! 👍👍"
                     )
                 )
         } catch (error) {
@@ -67,10 +72,10 @@ const likeDislikeAndUnlikePost =asyncHandler(
 )
 
 
-const likeDislikeAndUnlikeComment =asyncHandler(
+const likeAndUnlikeComment =asyncHandler(
     async (req,res)=>{
         const userId = req?.user?._id
-        const commentId = req?.body;
+        const {commentId} = req?.body;
         if(!userId) throw new ApiError(
             404,
             "User not found"
@@ -80,12 +85,12 @@ const likeDislikeAndUnlikeComment =asyncHandler(
             "comment ID not found"
         )
         try {
-            isLikeExist = await Likes.findOne({
+            const isLikeExist = await Likes.findOne({
                 commentId,
                 likedBy:userId
             })
             if(isLikeExist){
-                unlike = await Likes.findOneAndDelete({
+                const unlike = await Likes.findOneAndDelete({
                     commentId,
                     likedBy:userId
                 })
@@ -97,11 +102,11 @@ const likeDislikeAndUnlikeComment =asyncHandler(
                         {
                             like:false
                         },
-                        "Unlike comment successfully!"
+                        "Unlike comment successfully! 👍👍"
                     )
                 )
             }
-            createdLike= await Likes.create({
+            const createdLike= await Likes.create({
                 postId:postId,
                 likedBy:userId
             })
@@ -117,7 +122,7 @@ const likeDislikeAndUnlikeComment =asyncHandler(
                         {
                             like:true
                         },
-                        "like comment successfully!"
+                        "like comment successfully! 🙁🙁"
                     )
                 )
         } catch (error) {
@@ -130,6 +135,6 @@ const likeDislikeAndUnlikeComment =asyncHandler(
     }
 )
 export {
-    likeDislikeAndUnlikePost,
-    likeDislikeAndUnlikeComment
+    likeAndUnlikePost,
+    likeAndUnlikeComment
 }

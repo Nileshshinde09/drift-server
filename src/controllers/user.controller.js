@@ -6,7 +6,7 @@ import jwt from "jsonwebtoken"
 import { REFRESH_TOKEN_SECRET, EMAIL_OTP_EXPIRY } from "../constants.js"
 import { OTP } from "../models/OTP.model.js"
 import { emailVerificationContent, sendMail } from "../utils/mail.js"
-
+import mongoose from "mongoose"
 
 const validateOTP = asyncHandler(
     async (req, res) => {
@@ -54,16 +54,16 @@ const validateOTP = asyncHandler(
                 )
             const isCorrect = await otp.isOTPCorrect(incomingOTP);
             if (!isCorrect) return res.
-            status(200)
-            .json(
-                new ApiResponse(
-                    400,
-                    {
-                        isInvalid : true
-                    },
-                    "OTP Expired"
+                status(200)
+                .json(
+                    new ApiResponse(
+                        400,
+                        {
+                            isInvalid: true
+                        },
+                        "OTP Expired"
+                    )
                 )
-            )
 
             await User.findByIdAndUpdate(
                 userId,
@@ -97,58 +97,126 @@ const validateOTP = asyncHandler(
     }
 )
 
-const findUsersByUsernameOrName = asyncHandler(
+const findUsersByUsername = asyncHandler(
     async (req, res) => {
         const userId = req?.user?._id;
-        const { username, fullName } = req?.body;
+        const username = req.query.username;
         if (!userId) throw new ApiError(
             404,
             "User not found,unauthorised access."
         )
-        if (!username && !fullName) throw new ApiError(
+        if (!username) throw new ApiError(
             400,
-            "Username or Name requirred to check existance of user"
+            "Username requirred to check existance of user"
         )
-        const userResponse = await User.aggregate(
+       
+        const escapeRegex = (string) => {
+            return string.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&amp;');
+        };
+        const escapedSearchUsername = escapeRegex(username);
+        // const users = await User.find({ username: { $regex: `.*${escapedSearchUsername}.*`, $options: 'i' } });
+        const users = await User.aggregate(
             [
                 {
-                    $match: {
-                        $or: [
+                    $match:{
+                        username:{ $regex: `.*${escapedSearchUsername}.*`, $options: 'i' }
+                    }
+                },
+                {
+                    $lookup: {
+                        from: "follows",
+                        localField: "_id",
+                        foreignField: "followeeId",
+                        as: "isFollowing",
+                        pipeline: [
                             {
-                                username: username && username?.toLowerCase(),
-                                emailVerified: true
-                            },
-                            {
-                                fullName: fullName && fullName,
-                                emailVerified: true
+                                $match: {
+                                    followerId: new mongoose.Types.ObjectId(userId)
+                                }
                             }
                         ]
                     }
                 },
                 {
-                    $project: {
-                        username: 1,
-                        fullName: 1,
-                        avatar: 1
+                    $lookup: {
+                        from: "follows",
+                        localField: "_id",
+                        foreignField: "followerId",
+                        as: "isFollower",
+                        pipeline: [
+                            {
+                                $match: {
+                                    followerId: new mongoose.Types.ObjectId(userId)
+                                }
+                            }
+                        ]
+                    }
+                },
+                {
+                    $addFields: {
+                        isFollowing: {
+                            $cond: {
+                                if: {
+                                    $gte: [
+                                        {
+                                            $size: "$isFollowing",
+                                        },
+                                        1,
+                                    ],
+                                },
+                                then: true,
+                                else: false,
+                            },
+                        },
+        
+                        isFollower: {
+                            $cond: {
+                                if: {
+                                    $gte: [
+                                        {
+                                            $size: "$isFollower",
+                                        },
+                                        1,
+                                    ],
+                                },
+                                then: true,
+                                else: false,
+                            },
+                        },
+                    }
+                },
+                {
+                    $project:{  
+                        username:1,
+                        avatar:1,
+                        email:1,
+                        isFollowing:1,
+                        isFollower:1
                     }
                 }
             ]
         )
-
-
-        if (!userResponse) throw new ApiError(
+        if (!users) throw new ApiError(
             "something went wrong fetching user from database"
         )
-        if (!userResponse[0]) throw new ApiError(
-            "user not found"
-        )
+        if (!users[0]) return res.
+            status(404)
+            .json(
+                new ApiResponse(
+                    404,
+                    {
+                        users:null
+                    },
+                    "User not found !! 🙁🙁"
+                )
+            )
         return res.
             status(200)
             .json(
                 new ApiResponse(
                     200,
                     {
-                        user: userResponse[0]
+                        users
                     },
                     "User found successfully 😊😊"
                 )
@@ -278,7 +346,6 @@ const registerUser = asyncHandler(
 const isUsernameUnique = asyncHandler(
     async (req, res) => {
         const username = req.query.username;
-        console.log(username);
         if (
             username.trim() == ""
         ) {
@@ -468,6 +535,10 @@ const changeCurrentPassword = asyncHandler(
 
 const getCurrentUser = asyncHandler(
     async (req, res) => {
+        if (!req.user) throw new ApiError(
+            404,
+            "User not found , unauthorised access."
+        )
         return res
             .status(200)
             .json(
@@ -620,5 +691,5 @@ export {
     validateOTP,
     isUsernameUnique,
     createProfile,
-    findUsersByUsernameOrName
+    findUsersByUsername
 }

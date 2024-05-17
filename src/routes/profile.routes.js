@@ -1,12 +1,11 @@
 import { Router } from "express";
-import {
-    findUsersByUsername
-} from "../controllers/user.controller.js"
+import { getUserProfileByUsername } from "../controllers/profile.controller.js";
 import { verifyJWT } from "../middlewares/auth.middleware.js";
 import { verifyIsOtpValidated } from "../middlewares/emailValidation.middlerware.js";
 const router = Router();
 
-router.route("/find-user")
-    .get(verifyJWT,verifyIsOtpValidated,findUsersByUsername)
-    
+router.route("/S/get-profile/:username")
+    .get(verifyJWT,verifyIsOtpValidated,getUserProfileByUsername)
+
+
 export default router

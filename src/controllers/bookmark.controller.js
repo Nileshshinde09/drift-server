@@ -17,7 +17,7 @@ const BookmarkAndUnbookmark = asyncHandler(
         try {
             const isBookmarkPresent = await Bookmark.findOne({
                 PostId:postId,
-                BookmarkedBy: req?._id
+                BookmarkedBy: req?.user?._id
             })
             if (isBookmarkPresent) {
                 const bookmarkDeleteResponse = await Bookmark.findByIdAndDelete(isBookmarkPresent?._id)
@@ -40,7 +40,7 @@ const BookmarkAndUnbookmark = asyncHandler(
             const bookmarkResponse = await Bookmark.create(
                 {
                     PostId:postId,
-                    BookmarkedBy: req?._id
+                    BookmarkedBy: req?.user?._id
                 }
             )
             if (!bookmarkResponse) throw new ApiError(

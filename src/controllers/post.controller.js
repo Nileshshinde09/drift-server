@@ -22,10 +22,10 @@ const processPosts = async (aggregatePosts) => {
                     const postWithUserInfo = {
                         ...newPost,
                         isFollower: user.isFollower,
-                        isbookmarked:user.isbookmarked,
-                        isliked:user.isliked,
-                        likes:user.likes,
-                        comments:user.comments,
+                        isbookmarked: user.isbookmarked,
+                        isliked: user.isliked,
+                        likes: user.likes,
+                        comments: user.comments,
                         creator: {
                             _id: user._id,
                             username: user.username,
@@ -152,12 +152,13 @@ const createPostWithImages = asyncHandler(
     async (req, res) => {
         const ownerId = req?.user?._id;
         const { tags = [], caption } = req.body;
+        console.log(" images : ",req.files);
         if (!ownerId) throw new ApiError(
             400,
             "User not present, unauthorised access"
         )
 
-        if (!req.files) throw new ApiError(
+        if (req.files.length <= 0) throw new ApiError(
             404,
             "images not found , Images are required to procceed."
         )
@@ -676,8 +677,8 @@ const getPostFeed = asyncHandler(
                                         }
                                     ]
                                 }
-                            }
-                            , {
+                            },
+                            {
                                 $lookup: {
                                     from: "bookmarks",
                                     localField: "_id",

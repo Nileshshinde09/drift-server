@@ -5,11 +5,11 @@ import { verifyIsOtpValidated } from "../middlewares/emailValidation.middlerware
 const router = Router();
 
 router.route("/L/followers/:username")
-    .get(verifyJWT,getFollowersByUsername)
+    .get(verifyJWT,verifyIsOtpValidated,getFollowersByUsername)
 
     router.route("/L/followedTobe/:username")
-    .get(verifyJWT,followOrUnfollowByUsername)
+    .get(verifyJWT,verifyIsOtpValidated,followOrUnfollowByUsername)
 
     router.route("/L/followees/:username")
-    .get(verifyJWT,getFolloweesByUsername)
+    .get(verifyJWT,verifyIsOtpValidated,getFolloweesByUsername)
 export default router
