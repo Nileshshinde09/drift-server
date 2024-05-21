@@ -10,7 +10,6 @@ import {
     generateOTP,
     validateOTP,
     isUsernameUnique,
-    findUsersByUsername
 } from "../controllers/user.controller.js"
 import { verifyJWT } from "../middlewares/auth.middleware.js";
 import { verifyIsOtpValidated } from "../middlewares/emailValidation.middlerware.js";
