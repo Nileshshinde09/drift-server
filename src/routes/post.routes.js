@@ -10,7 +10,9 @@ import {
     updatePostImagesByPostId,
     updatePostVideosByPostId,
     deletePost,
-    getPostFeed
+    getPostFeed,
+    getAllUserOwnedPosts,
+    getPostById
 } from "../controllers/post.controller.js"
 const router = Router();
 
@@ -22,6 +24,13 @@ router.route("/create-post-with-video")
 
 router.route("/get-all-posts")
     .get(verifyJWT, verifyIsOtpValidated, getAllPost)
+
+router.route("/get-post-by-id")
+    .get(verifyJWT, verifyIsOtpValidated, getPostById)
+
+
+router.route("/get-all-user-owned-posts")
+    .get(verifyJWT, verifyIsOtpValidated, getAllUserOwnedPosts)
 
 router.route("/update-post-content")
     .put(verifyJWT, verifyIsOtpValidated, updatePostContentByPostId)

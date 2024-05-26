@@ -574,7 +574,6 @@ const updateAccountDetails = asyncHandler(
                     email: filteredObj?.email
                 }
             )
-
             if (existedUserWithEmail) throw new ApiError(409, "User with email already exists")
         }
         if (filteredObj?.username) {
@@ -589,6 +588,10 @@ const updateAccountDetails = asyncHandler(
         if (!filteredObj) throw new ApiError(400,
             "data not available"
         )
+        if(filteredObj.avatar){
+            filteredObj.avatar = new mongoose.Types.ObjectId(filteredObj.avatar)
+        }
+        
         const user = await User.findByIdAndUpdate(
             req.user?._id,
             {

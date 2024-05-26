@@ -36,7 +36,7 @@ const userSchema = new Schema(
             default: null,
           },
         avatar:{
-            type:Schema.Types.ObjectId, //url
+            type:Schema.Types.ObjectId, //Id
             ref:"Images",
             default:null
         },

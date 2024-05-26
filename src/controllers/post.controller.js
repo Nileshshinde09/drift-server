@@ -152,7 +152,7 @@ const createPostWithImages = asyncHandler(
     async (req, res) => {
         const ownerId = req?.user?._id;
         const { tags = [], caption } = req.body;
-        console.log(" images : ",req.files);
+        console.log(" images : ", req.files);
         if (!ownerId) throw new ApiError(
             400,
             "User not present, unauthorised access"
@@ -299,11 +299,95 @@ const getAllPost = asyncHandler(
     }
 )
 
+
+const getAllUserOwnedPosts = asyncHandler(
+    async (req,res) => {
+        const userId = req?.user?._id;
+        if (!userId) throw new ApiError(
+            404,
+            "User not found, unauthorised access"
+        )
+        try {
+            const fetchedPost = await Posts.aggregate([
+                {
+                    $match:{
+                        ownerId:userId
+                    }
+                },
+                ...PostCommonAggregration(req?.user?._id)
+
+            ])
+            return res.
+                status(200)
+                .json(
+                    new ApiResponse(
+                        200,
+                        {
+                            fetchedPost: fetchedPost
+                        },
+                        "Post fetched successfully!"
+                    )
+                )
+        } catch (error) {
+            throw new ApiError(
+                500,
+                error.message || "Something went wrong while getting the posts"
+            )
+        }
+
+
+
+    }
+)
+
+const getPostById = asyncHandler(
+    async (req,res) => {
+        const userId = req?.user?._id;
+        const { PostId } = req.query;
+        if (!userId) throw new ApiError(
+            404,
+            "User not found, unauthorised access"
+        )
+        if(!PostId) throw new ApiError(
+            404,
+            "PostId Not Found !!"
+        )
+        try {
+            const fetchedPost = await Posts.aggregate([
+                {
+                    $match:{
+                        _id: new mongoose.Types.ObjectId(PostId)
+                    }
+                },
+                ...PostCommonAggregration(req?.user?._id)
+
+            ])
+            return res.
+                status(200)
+                .json(
+                    new ApiResponse(
+                        200,
+                        {
+                            fetchedPost: fetchedPost
+                        },
+                        "Post fetched successfully!"
+                    )
+                )
+        } catch (error) {
+            throw new ApiError(
+                500,
+                error.message || "Something went wrong while getting the posts"
+            )
+        }
+
+
+
+    }
+)
 const updatePostContentByPostId = asyncHandler(
     async (req, res) => {
         const userId = req?.user?._id
         const { tags, caption, postId } = req.body;
-        console.log(tags, caption, postId);
         if (!userId) throw new ApiError(
             404,
             "User not found, unauthorised access"
@@ -334,7 +418,6 @@ const updatePostContentByPostId = asyncHandler(
                 }
             )
         } else if (caption) {
-            console.log("h3", _id);
 
             updatedResponse = await Posts.findByIdAndUpdate(
                 _id,
@@ -343,7 +426,7 @@ const updatePostContentByPostId = asyncHandler(
                 }
             )
         }
-        console.log(updatedResponse);
+
 
         if (!updatedResponse) throw new ApiError(
             500,
@@ -384,7 +467,7 @@ const updatePostImagesByPostId = asyncHandler(
         )
         if (!req.files) throw new ApiError(
             404,
-            "image not found , image are required to procceed."
+            "images not found , image are required to procceed."
         )
         try {
             const { images } = await Posts.findById(postId);
@@ -815,6 +898,8 @@ export {
     updatePostImagesByPostId,
     updatePostVideosByPostId,
     deletePost,
-    getPostFeed
+    getPostFeed,
+    getAllUserOwnedPosts,
+    getPostById
 
 }
