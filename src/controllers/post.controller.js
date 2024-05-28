@@ -32,6 +32,7 @@ const processPosts = async (aggregatePosts) => {
                             avatar: user.avatar,
                         },
                     };
+
                     if (!postWithUserInfo.video) {
                         postWithUserInfo.images = await Promise.all(postWithUserInfo.images.map(async (_id) => {
                             const img = await Images.findById(_id);
@@ -301,7 +302,7 @@ const getAllPost = asyncHandler(
 
 
 const getAllUserOwnedPosts = asyncHandler(
-    async (req,res) => {
+    async (req, res) => {
         const userId = req?.user?._id;
         if (!userId) throw new ApiError(
             404,
@@ -310,8 +311,8 @@ const getAllUserOwnedPosts = asyncHandler(
         try {
             const fetchedPost = await Posts.aggregate([
                 {
-                    $match:{
-                        ownerId:userId
+                    $match: {
+                        ownerId: userId
                     }
                 },
                 ...PostCommonAggregration(req?.user?._id)
@@ -341,21 +342,21 @@ const getAllUserOwnedPosts = asyncHandler(
 )
 
 const getPostById = asyncHandler(
-    async (req,res) => {
+    async (req, res) => {
         const userId = req?.user?._id;
         const { PostId } = req.query;
         if (!userId) throw new ApiError(
             404,
             "User not found, unauthorised access"
         )
-        if(!PostId) throw new ApiError(
+        if (!PostId) throw new ApiError(
             404,
             "PostId Not Found !!"
         )
         try {
             const fetchedPost = await Posts.aggregate([
                 {
-                    $match:{
+                    $match: {
                         _id: new mongoose.Types.ObjectId(PostId)
                     }
                 },
@@ -695,7 +696,6 @@ const getPostFeed = asyncHandler(
                                 },
 
                             },
-
                             {
                                 $lookup: {
                                     from: "follows",

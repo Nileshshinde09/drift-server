@@ -1,7 +1,7 @@
 import mongoose, { Schema } from "mongoose";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
-import { PROFILE_BANNER , GENDER_TYPE, ACCESS_TOKEN_SECRET, ACCESS_TOKEN_EXPIRY, REFRESH_TOKEN_SECRET, REFRESH_TOKEN_EXPIRY } from "../constants.js";
+import { PROFILE_BANNER , GENDER_TYPE, ACCESS_TOKEN_SECRET, ACCESS_TOKEN_EXPIRY, REFRESH_TOKEN_SECRET, REFRESH_TOKEN_EXPIRY,RESET_FOROGT_PASSWORD_SECURITY_TOKEN_SECRET,RESET_FOROGT_PASSWORD_TOKEN_EXPIRY } from "../constants.js";
 
 const userSchema = new Schema(
     {
@@ -98,6 +98,20 @@ userSchema.methods.generateAccessToken= async function(){
     )
 }
 
+userSchema.methods.generateResetPasswordSecurityToken = async function(){
+    return jwt.sign(
+      {
+        _id:this._id,
+        username:this.username,
+        email:this.email
+      },
+      RESET_FOROGT_PASSWORD_SECURITY_TOKEN_SECRET,
+      {
+        expiresIn:RESET_FOROGT_PASSWORD_TOKEN_EXPIRY,
+      } 
+    )
+}
+
 userSchema.methods.generateRefreshToken = async function(){
     return jwt.sign(
         {
@@ -105,7 +119,7 @@ userSchema.methods.generateRefreshToken = async function(){
         },
         REFRESH_TOKEN_SECRET,
         {
-            expiresIn:REFRESH_TOKEN_EXPIRY
+            expiresIn: REFRESH_TOKEN_EXPIRY
         }
     )
 }
