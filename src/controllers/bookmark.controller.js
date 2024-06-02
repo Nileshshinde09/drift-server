@@ -66,7 +66,46 @@ const BookmarkAndUnbookmark = asyncHandler(
             )
     }
 )
-
+const isBookmarked = asyncHandler(
+    async (req, res) => {
+        const { postId } = req.query
+        if (!req.user) throw new ApiError(
+            404,
+            "User not found, unauthorised access"
+        )
+        if (!postId) throw new ApiError(
+            404,
+            "Post Id not found . 😰😰"
+        )
+        
+        try {
+            const isBookmarkPresent = await Bookmark.findOne({
+                PostId:postId,
+                BookmarkedBy: req?.user?._id
+            })
+            let isBookmarked;
+            if (isBookmarkPresent) isBookmarked=true;
+            else isBookmarked=false
+            return res
+            .status(200)
+            .json(
+                new ApiResponse(
+                    200,
+                    {
+                        isBookmarked
+                    }
+                )
+            )
+                
+        } catch (error) {
+            throw new ApiError(
+                500,
+                error.message || "Something went while creating bookmarking post"
+            )
+        }
+    }
+)
 export {
-    BookmarkAndUnbookmark
+    BookmarkAndUnbookmark,
+    isBookmarked
 }

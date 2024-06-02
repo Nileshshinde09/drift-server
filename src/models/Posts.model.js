@@ -1,5 +1,5 @@
 import mongoose,{Schema} from "mongoose";
-
+import mongooseAggregatePaginate from "mongoose-aggregate-paginate-v2";
 const PostsSchema= new Schema(
     {
         ownerId:{
@@ -30,5 +30,5 @@ const PostsSchema= new Schema(
     },
     {timestamps:true}
 )
-
+PostsSchema.plugin(mongooseAggregatePaginate);
 export const Posts = mongoose.model("Posts",PostsSchema);

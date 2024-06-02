@@ -304,6 +304,7 @@ const getAllPost = asyncHandler(
 const getAllUserOwnedPosts = asyncHandler(
     async (req, res) => {
         const userId = req?.user?._id;
+        const {page=1,limit=3} = req?.query;
         if (!userId) throw new ApiError(
             404,
             "User not found, unauthorised access"
@@ -318,6 +319,19 @@ const getAllUserOwnedPosts = asyncHandler(
                 ...PostCommonAggregration(req?.user?._id)
 
             ])
+            const options = {
+                page,
+                limit
+            };
+
+            Posts.aggregatePaginate(fetchedPost, options)
+                .then(function (result) {
+                    console.log(result.docs)
+                })
+                .catch(function (err) {
+                    console.log(err);
+                });
+
             return res.
                 status(200)
                 .json(
@@ -746,7 +760,8 @@ const getPostFeed = asyncHandler(
                                     foreignField: "PostId",
                                     as: "likes"
                                 }
-                            }, {
+                            },
+                            {
                                 $lookup: {
                                     from: "likes",
                                     localField: "_id",
@@ -857,6 +872,10 @@ const getPostFeed = asyncHandler(
                 },
             ]
         )
+
+
+        console.log(followees);
+
         if (!followees)
             return res
                 .status(200)

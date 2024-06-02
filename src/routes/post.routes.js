@@ -28,7 +28,6 @@ router.route("/get-all-posts")
 router.route("/get-post-by-id")
     .get(verifyJWT, verifyIsOtpValidated, getPostById)
 
-
 router.route("/get-all-user-owned-posts")
     .get(verifyJWT, verifyIsOtpValidated, getAllUserOwnedPosts)
 
