@@ -65,6 +65,13 @@ import followRouter from "./routes/follow.routes.js"
 app.use("/api/v1/follow",followRouter)
 //-------------------------------------------------------------
 
+//Friend Operations Routes
+//-------------------------------------------------------------
+import friendsRouter from "./routes/friends.routes.js"
+app.use("/api/v1/friends",friendsRouter)
+//-------------------------------------------------------------
+
+
 //Post Operations Routes
 //-------------------------------------------------------------
 import PostRouter from "./routes/post.routes.js"

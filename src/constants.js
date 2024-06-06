@@ -28,7 +28,7 @@ export const GENDER_TYPE=[
 ]
 
 export const TYPES_OF_NOTIFICATION=[
-    "Request",
+    "FriendRequest",
     "TimeTrek",
     "RateLimiter",
     "levels",
