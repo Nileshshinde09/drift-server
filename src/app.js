@@ -3,13 +3,33 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import { limiter } from "./middlewares/rateLimiter.middleware.js";
 import requestIp from "request-ip";
+import { createServer } from "http";
+import { Server } from "socket.io";
+import { initializeSocketIO } from "./socket/index.js";
 
 const app = express();
-
-app.use(cors({
+const httpServer = createServer(app);
+const io = new Server(httpServer, {
+  pingTimeout: 60000,
+  cors: {
     origin: process.env.CORS_ORIGIN,
-    credentials: true
-}));
+    credentials: true,
+  },
+});
+
+app.set("io", io); 
+
+
+
+app.use(
+  cors({
+    origin:
+      process.env.CORS_ORIGIN === "*"
+        ? "*" 
+        : process.env.CORS_ORIGIN?.split(","), 
+    credentials: true,
+  })
+);
 
 app.use((req, res, next) => {
     res.header("Access-Control-Allow-Origin", "http://localhost:5173/")
@@ -19,6 +39,8 @@ app.use((req, res, next) => {
     );
     next()
 }) 
+
+
 
 app.use(requestIp.mw());
 app.use(limiter);
@@ -108,4 +130,7 @@ import ProfileRouter from "./routes/profile.routes.js"
 app.use("/api/v1/profile",ProfileRouter)
 //-------------------------------------------------------------
 
-export { app };
+
+initializeSocketIO(io);
+
+export { httpServer };

@@ -20,6 +20,24 @@ export const GLOBAL_API_RATELIMITER_REQUEST_COUNT = Number(process.env.GLOBAL_AP
 export const RESET_PASSWORD_RATELIMITER_REQUEST_COUNT = Number(process.env.RESET_PASSWORD_RATELIMITER_REQUEST_COUNT)
 export const RESET_FOROGT_PASSWORD_SECURITY_TOKEN_SECRET = String(process.env.RESET_FOROGT_PASSWORD_SECURITY_TOKEN_SECRET)
 export const RESET_FOROGT_PASSWORD_TOKEN_EXPIRY = String(process.env.RESET_FOROGT_PASSWORD_TOKEN_EXPIRY)
+export const REDIS_HOST = String(process.env.REDIS_HOST)
+export const REDIS_PORT = Number(process.env.REDIS_PORT)
+
+export const SocketEventEnum = Object.freeze({
+    CONNECTED_EVENT: "connected",
+    DISCONNECT_EVENT: "disconnect",
+    SOCKET_ERROR_EVENT: "socketError",
+    NOTIFICATION_MOUNT_EVENT: "notificationMountEvent",
+    NOTIFICATION_ENJECT_EVENT:"notificationEnjectEvent"
+  });
+
+export const NotificationTypesEnum = Object.freeze({
+    FRIENDS:"to-friends",
+    FOLLOWERS:"to-followers",
+    INDIVIDUAL:"to-individual-user",
+    GROUP:"to-group-of-peoples"
+  });
+
 
 export const GENDER_TYPE=[
     "male",

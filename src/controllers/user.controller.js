@@ -775,8 +775,10 @@ const resetForgotPasswordVerification = asyncHandler(
             404,
             "User Not Found, Unauthorised Request!"
         )
+
         return res
             .status(200)
+            .clearCookie("resetforgotpasswordToken")
             .json(new ApiResponse(200, {}, "Page Load Verification Successfully!"))
     }
 
