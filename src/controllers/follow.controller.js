@@ -8,8 +8,6 @@ const followOrUnfollowByUsername = asyncHandler(
     async (req, res) => {
         const follower = req.user
         const username = req.params.username;
-        console.log(follower.username);
-        console.log(username);
         try {
             if (!username) throw new ApiError(
                 404,
@@ -86,6 +84,10 @@ const followOrUnfollowByUsername = asyncHandler(
 const getFollowersByUsername = asyncHandler(
     async (req, res) => {
         const username = req.params.username
+        if (!req.user) throw new ApiError(
+            404,
+            "User not found ,Unauthorised Access"
+        )
         const { page = 1, limit = 10 } = req.query;
         const userAggregation = await User.aggregate(
             [
@@ -143,7 +145,6 @@ const getFollowersByUsername = asyncHandler(
                                 },
 
                             },
-
                             {
                                 $lookup: {
                                     from: "follows",
@@ -154,7 +155,7 @@ const getFollowersByUsername = asyncHandler(
                                         {
                                             $match:
                                             {
-                                                followerId: new mongoose.Schema.ObjectId(req?._id)
+                                                followerId: new mongoose.Types.ObjectId(req?.user?._id)
                                             }
                                         }
                                     ]
@@ -217,25 +218,25 @@ const getFollowersByUsername = asyncHandler(
 
             ]
         )
-        const followersList = await Follows.aggregatePaginate(
-            followersAggregate,
-            {
-                page: Math.max(page, 1),
-                limit: Math.max(limit, 1),
-                pagination: true,
-                customLabels: {
-                    pagingCounter: "serialNumberStartFrom",
-                    totalDocs: "totalFollowers",
-                    docs: "followers",
-                },
-            }
-        )
+        // const followersList = await Follows.aggregatePaginate(
+        //     followersAggregate,
+        //     {
+        //         page: Math.max(page, 1),
+        //         limit: Math.max(limit, 1),
+        //         pagination: true,
+        //         customLabels: {
+        //             pagingCounter: "serialNumberStartFrom",
+        //             totalDocs: "totalFollowers",
+        //             docs: "followers",
+        //         },
+        //     }
+        // )
         return res.
             status(200)
             .json(
                 new ApiResponse(
                     200,
-                    { user, ...followersList },
+                    { user, followers: followersAggregate },
                     "followers fetched successfully"
                 )
             )
@@ -243,7 +244,15 @@ const getFollowersByUsername = asyncHandler(
 )
 const getFolloweesByUsername = asyncHandler(
     async (req, res) => {
+        if (!req.user) throw new ApiError(
+            404,
+            "User not found ,Unauthorised Access"
+        )
         const username = req.params.username
+        if (!username) throw new ApiError(
+            404,
+            "Username not found."
+        )
         const { page = 1, limit = 10 } = req.query;
         const userAggregation = await User.aggregate(
             [
@@ -301,18 +310,17 @@ const getFolloweesByUsername = asyncHandler(
                                 },
 
                             },
-
                             {
                                 $lookup: {
                                     from: "follows",
                                     localField: "_id",
-                                    foreignField: "followerId",
-                                    as: "isFollowing",
+                                    foreignField: "followeeId",
+                                    as: "isFollower",
                                     pipeline: [
                                         {
                                             $match:
                                             {
-                                                followerId: new mongoose.Schema.ObjectId(userId)
+                                                followeeId: new mongoose.Types.ObjectId(req?.user?._id)
                                             }
                                         }
                                     ]
@@ -320,13 +328,13 @@ const getFolloweesByUsername = asyncHandler(
                             },
                             {
                                 $addFields: {
-                                    isFollowing: {
+                                    isFollower: {
                                         $cond: {
 
                                             if: {
                                                 $gte: [
                                                     {
-                                                        $size: "$isFollowing",
+                                                        $size: "$isFollower",
                                                     },
                                                     1,
                                                 ],
@@ -348,7 +356,7 @@ const getFolloweesByUsername = asyncHandler(
                                     bio: 1,
                                     status: 1,
                                     emailVerified: 1,
-                                    isFollowing: 1
+                                    isFollower: 1
 
                                 }
                             }
@@ -358,13 +366,13 @@ const getFolloweesByUsername = asyncHandler(
                 },
                 {
                     $addFields: {
-                        follower: { $first: "$followee" },
+                        followee: { $first: "$followee" },
                     },
                 },
                 {
                     $project: {
                         _id: 0,
-                        follower: 1,
+                        followee: 1,
                     },
                 },
                 {
@@ -372,39 +380,93 @@ const getFolloweesByUsername = asyncHandler(
                         newRoot: "$followee",
                     },
                 },
-
-
             ]
         )
-        const followeesList = await Follows.aggregatePaginate(
-            followeesAggregate,
-            {
-                page: Math.max(page, 1),
-                limit: Math.max(limit, 1),
-                pagination: true,
-                customLabels: {
-                    pagingCounter: "serialNumberStartFrom",
-                    totalDocs: "totalFollowers",
-                    docs: "followers",
-                },
-            }
-        )
+        // const followeesList = await Follows.aggregatePaginate(
+        //     followeesAggregate,
+        //     {
+        //         page: Math.max(page, 1),
+        //         limit: Math.max(limit, 1),
+        //         pagination: true,
+        //         customLabels: {
+        //             pagingCounter: "serialNumberStartFrom",
+        //             totalDocs: "totalFollowers",
+        //             docs: "followers",
+        //         },
+        //     }
+        // )
 
         return res.
             status(200)
             .json(
                 new ApiResponse(
                     200,
-                    {   user,
-                        ...followeesList 
+                    {
+                        user,
+                        followees: followeesAggregate
                     },
                     "followees fetched successfully"
                 )
             )
     }
 )
+const isFollowed = asyncHandler(
 
+    async (req, res) => {
+        try {
+            if (!req.user) throw new ApiError(
+                404,
+                "User not found. Unauthorised request."
+            )
+            const username = req.params.username
+            console.log(username);
+            if (!username) throw new ApiError(
+                404,
+                "Username not found."
+            )
+
+            const followee = await User.findOne({ username })
+            if (followee?._id){
+
+                const response = await Follows.findOne(
+                    {
+                        followerId: req?.user?._id,
+                        followeeId: followee?._id
+                    }
+                )
+                if(response?._id){
+                    return res.
+                    status(200)
+                    .json(
+                        new ApiResponse(
+                            200,
+                            {
+                                followed:true
+                            }
+                        )
+                    )                    
+                } 
+            }
+            return res.
+            status(200)
+            .json(
+                new ApiResponse(
+                    401,
+                    {
+                        followed:false
+                    }
+                )
+            )  
+        } catch (error) {
+            throw new ApiError(
+                500,
+                error.message || "something went wrong while getting user follow state."
+            )
+        }
+    }
+)
 export {
+    isFollowed,
     followOrUnfollowByUsername,
     getFollowersByUsername,
     getFolloweesByUsername

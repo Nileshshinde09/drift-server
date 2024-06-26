@@ -10,8 +10,11 @@ import {
     generateOTP,
     validateOTP,
     isUsernameUnique,
+    resetForgotPassword,
+    sendResetForgotPasswordEmail,
+    resetForgotPasswordVerification
 } from "../controllers/user.controller.js"
-import { verifyJWT } from "../middlewares/auth.middleware.js";
+import { verifyJWT,verifyResetForgotPasswordJWT } from "../middlewares/auth.middleware.js";
 import { verifyIsOtpValidated } from "../middlewares/emailValidation.middlerware.js";
 const router = Router();
 
@@ -45,5 +48,13 @@ router.route("/current-user")
 router.route("/check-unique-username")
     .get(isUsernameUnique)
 
+router.route("/reset-forgot-password")
+    .post(verifyResetForgotPasswordJWT, resetForgotPassword)
 
+router.route("/send-reset-forgot-password-email")
+    .post(sendResetForgotPasswordEmail)
+
+router.route("/reset-forgot-password-page-verification")
+    .post(verifyResetForgotPasswordJWT,resetForgotPasswordVerification)
+    
 export default router

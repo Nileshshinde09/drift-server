@@ -12,7 +12,6 @@ const sendMail = async (options,recipientEmail,emailVerificationSubject) => {
         }
     })
     const emailTextual = mailGenerator.generatePlaintext(options)
-    console.log(emailTextual);
     const emailHtml = mailGenerator.generate(options)
     const transporter = nodemailer.createTransport({
         host: MAILTRAP_SMTP_HOST,

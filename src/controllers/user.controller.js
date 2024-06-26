@@ -3,10 +3,12 @@ import { ApiError } from "../utils/ApiError.js"
 import { ApiResponse } from "../utils/ApiResponse.js"
 import { User } from "../models/user.model.js"
 import jwt from "jsonwebtoken"
-import { REFRESH_TOKEN_SECRET, EMAIL_OTP_EXPIRY } from "../constants.js"
+import { REFRESH_TOKEN_SECRET, EMAIL_OTP_EXPIRY,NotificationTypesEnum } from "../constants.js"
 import { OTP } from "../models/OTP.model.js"
-import { emailVerificationContent, sendMail } from "../utils/mail.js"
+import { emailVerificationContent, sendMail, forgotPasswordContent } from "../utils/mail.js"
 import mongoose from "mongoose"
+import { ForgotPassword } from "../models/forgotPassword.model.js"
+import { sendNotifications } from "../services/queue/notification.queue.js"
 
 const validateOTP = asyncHandler(
     async (req, res) => {
@@ -109,7 +111,7 @@ const findUsersByUsername = asyncHandler(
             400,
             "Username requirred to check existance of user"
         )
-       
+
         const escapeRegex = (string) => {
             return string.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&amp;');
         };
@@ -118,8 +120,8 @@ const findUsersByUsername = asyncHandler(
         const users = await User.aggregate(
             [
                 {
-                    $match:{
-                        username:{ $regex: `.*${escapedSearchUsername}.*`, $options: 'i' }
+                    $match: {
+                        username: { $regex: `.*${escapedSearchUsername}.*`, $options: 'i' }
                     }
                 },
                 {
@@ -168,7 +170,7 @@ const findUsersByUsername = asyncHandler(
                                 else: false,
                             },
                         },
-        
+
                         isFollower: {
                             $cond: {
                                 if: {
@@ -186,12 +188,12 @@ const findUsersByUsername = asyncHandler(
                     }
                 },
                 {
-                    $project:{  
-                        username:1,
-                        avatar:1,
-                        email:1,
-                        isFollowing:1,
-                        isFollower:1
+                    $project: {
+                        username: 1,
+                        avatar: 1,
+                        email: 1,
+                        isFollowing: 1,
+                        isFollower: 1
                     }
                 }
             ]
@@ -205,7 +207,7 @@ const findUsersByUsername = asyncHandler(
                 new ApiResponse(
                     404,
                     {
-                        users:null
+                        users: null
                     },
                     "User not found !! 🙁🙁"
                 )
@@ -406,7 +408,7 @@ const loginUser = asyncHandler(
             }
             return res
                 .status(200)
-                .cookie("accessToken", accessToken, options)
+                .cookie("accessToken", accessToken)
                 .cookie("refreshToken", refreshToken, options)
                 .json(
                     new ApiResponse(
@@ -451,7 +453,7 @@ const logoutUser = asyncHandler(
 
             return res.
                 status(200)
-                .clearCookie("accessToken", options)
+                .clearCookie("accessToken")
                 .clearCookie("refreshToken", options)
                 .json(
                     new ApiResponse(
@@ -496,7 +498,7 @@ const refreshAccessToken = asyncHandler(
 
             return res
                 .status(200)
-                .cookie("accessToken", accessToken, options)
+                .cookie("accessToken", accessToken)
                 .cookie("refreshToken", newRefreshToken, options)
                 .json(
                     new ApiResponse(
@@ -539,6 +541,7 @@ const getCurrentUser = asyncHandler(
             404,
             "User not found , unauthorised access."
         )
+        //  await sendNotifications(String(req.user._id),"Hi Myself nilesh",{},"URL",NotificationTypesEnum.FOLLOWERS)
         return res
             .status(200)
             .json(
@@ -575,7 +578,6 @@ const updateAccountDetails = asyncHandler(
                     email: filteredObj?.email
                 }
             )
-
             if (existedUserWithEmail) throw new ApiError(409, "User with email already exists")
         }
         if (filteredObj?.username) {
@@ -590,6 +592,10 @@ const updateAccountDetails = asyncHandler(
         if (!filteredObj) throw new ApiError(400,
             "data not available"
         )
+        if (filteredObj.avatar) {
+            filteredObj.avatar = new mongoose.Types.ObjectId(filteredObj.avatar)
+        }
+
         const user = await User.findByIdAndUpdate(
             req.user?._id,
             {
@@ -677,9 +683,113 @@ const generateOTP = asyncHandler(
     }
 )
 
+const sendResetForgotPasswordEmail = asyncHandler(
+    async (req, res) => {
+        if (!req) throw new ApiError(
+            404,
+            "Request not found !"
+        )
+        const { email, passwordResetUrl } = req?.body;
+        if (!email) throw new ApiError(
+            404,
+            "Email Not Found!"
+        )
+        const user = await User.findOne({
+            email
+        })
+        if (!user)
+            return res.
+                status(200)
+                .json(
+                    new ApiResponse(
+                        404,
+                        {},
+                        "Email Id not Found"
+                    )
+                )
+        const token = await user.generateResetPasswordSecurityToken()
+        const URL = `${passwordResetUrl}${token}`
+        try {
+            const emailContent = forgotPasswordContent(user.username, URL);
+            await sendMail(emailContent, user.email, "Drift Reset Forgot Password Email.");
+            const isUserExist = await ForgotPassword.findOne({
+                userId: user._id,
+            })
+            let forgotPasswordResponse = null;
+            if (!isUserExist) {
+                forgotPasswordResponse = await ForgotPassword.create({
+                    userId: user._id,
+                    resetPasswordToken: token
+                })
+            } else {
+                forgotPasswordResponse = await ForgotPassword.findByIdAndUpdate(
+                    isUserExist._id,
+                    {
+                        resetPasswordToken: token
+                    }
+                )
+            }
+            if (forgotPasswordResponse) {
+                return res.status(200)
+                    .json(
+                        new ApiResponse(
+                            200,
+                            {},
+                            "Email Send Successfully !"
+                        )
+                    )
+            }
 
+        } catch (error) {
+            throw new ApiError(
+                500,
+                error?.message || "Something went wrong while sending OTP with email"
+            )
+        }
+
+    }
+)
+
+const resetForgotPassword = asyncHandler(
+    async (req, res) => {
+        if (!req?.user) throw new ApiError(
+            404,
+            "User Not Found, Unauthorised Request !"
+        )
+        const { newPassword } = req.body;
+
+        if (!newPassword) throw new ApiError(
+            404,
+            "New Password Not Found"
+        )
+        const user = await User.findById(req.user?._id)
+        user.password = newPassword
+        await user.save(
+            { validateBeforeSave: false }
+        )
+        return res
+            .status(200)
+            .json(new ApiResponse(200, {}, "Password changed successfully"))
+    }
+
+)
+const resetForgotPasswordVerification = asyncHandler(
+    async (req, res) => {
+        if (!req?.user) throw new ApiError(
+            404,
+            "User Not Found, Unauthorised Request!"
+        )
+
+        return res
+            .status(200)
+            .clearCookie("resetforgotpasswordToken")
+            .json(new ApiResponse(200, {}, "Page Load Verification Successfully!"))
+    }
+
+)
 
 export {
+    resetForgotPasswordVerification,
     generateAccessAndRefreshTokens,
     registerUser,
     loginUser,
@@ -692,5 +802,7 @@ export {
     validateOTP,
     isUsernameUnique,
     createProfile,
-    findUsersByUsername
+    findUsersByUsername,
+    resetForgotPassword,
+    sendResetForgotPasswordEmail,
 }
