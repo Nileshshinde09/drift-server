@@ -550,6 +550,7 @@ const getCurrentUser = asyncHandler(
             )
     }
 )
+
 const updateAccountDetails = asyncHandler(
     async (req, res) => {
         const incomingObject = req.body;
