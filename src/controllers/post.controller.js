@@ -872,10 +872,6 @@ const getPostFeed = asyncHandler(
                 },
             ]
         )
-
-
-        console.log(followees);
-
         if (!followees)
             return res
                 .status(200)

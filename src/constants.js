@@ -4,10 +4,13 @@ export const MONGO_CONNECTION_URL = String(process.env.MONGO_CONNECTION_URL);
 export const ACCESS_TOKEN_SECRET = String(process.env.ACCESS_TOKEN_SECRET)
 export const REFRESH_TOKEN_SECRET = String(process.env.REFRESH_TOKEN_SECRET)
 export const ACCESS_TOKEN_EXPIRY = String(process.env.ACCESS_TOKEN_EXPIRY)
-export const REFRESH_TOKEN_EXPIRY = String(process.env.REFRESH_TOKEN_EXPIRY) 
+export const REFRESH_TOKEN_EXPIRY = String(process.env.REFRESH_TOKEN_EXPIRY)
 export const CLOUDINARY_CLOUD_NAME = String(process.env.CLOUDINARY_CLOUD_NAME)
 export const CLOUDINARY_API_KEY = String(process.env.CLOUDINARY_API_KEY)
 export const CLOUDINARY_API_SECRET = String(process.env.CLOUDINARY_API_SECRET)
+export const CLOUDINARY_CLOUD_NAME_V2 = String(process.env.CLOUDINARY_CLOUD_NAME_V2)
+export const CLOUDINARY_API_KEY_V2 = String(process.env.CLOUDINARY_API_KEY_V2)
+export const CLOUDINARY_API_SECRET_V2 = String(process.env.CLOUDINARY_API_SECRET_V2)
 export const EMAIL_OTP_EXPIRY = Number(process.env.EMAIL_OTP_EXPIRY)
 export const DEFAULT_AVATAR_URL = ""
 export const EMAIL_APP_LINK = String(process.env.EMAIL_APP_LINK)
@@ -28,24 +31,38 @@ export const SocketEventEnum = Object.freeze({
     DISCONNECT_EVENT: "disconnect",
     SOCKET_ERROR_EVENT: "socketError",
     NOTIFICATION_MOUNT_EVENT: "notificationMountEvent",
-    NOTIFICATION_ENJECT_EVENT:"notificationEnjectEvent"
-  });
+    NOTIFICATION_ENJECT_EVENT: "notificationEnjectEvent"
+});
 
+export const NotificationMessages = Object.freeze(
+    {
+        VIDEO_CALL_NOTIFICATION_MESSAGE: "incomming video call..."
+    }
+)
+export const NotificationURLs = Object.freeze(
+    {
+        VIDEO_CALL_NOTIFICATION_URL: "/"
+    }
+)
 export const NotificationTypesEnum = Object.freeze({
-    FRIENDS:"to-friends",
-    FOLLOWERS:"to-followers",
-    INDIVIDUAL:"to-individual-user",
-    GROUP:"to-group-of-peoples"
-  });
+    FRIENDS: "to-friends",
+    FOLLOWERS: "to-followers",
+    INDIVIDUAL: "to-individual-user",
+    GROUP: "to-group-of-peoples"
+});
 
+export const CallTypesEnum = Object.freeze({
+    VIDEO: "video",
+    VOICE: "voice"
+});
 
-export const GENDER_TYPE=[
+export const GENDER_TYPE = [
     "male",
     "female",
     "others"
 ]
 
-export const TYPES_OF_NOTIFICATION=[
+export const TYPES_OF_NOTIFICATION = [
     "FriendRequest",
     "TimeTrek",
     "RateLimiter",
@@ -62,7 +79,7 @@ export const REQUEST_STATUS = [
     "Rejected"
 ]
 
-export const PARTICIPANTS_TYPES=[
+export const PARTICIPANTS_TYPES = [
     "Participant",   //default
     "Host",
     "Co-Host",

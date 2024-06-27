@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { verifyJWT } from "../middlewares/auth.middleware.js";
 import { verifyIsOtpValidated } from "../middlewares/emailValidation.middlerware.js";
-import {makeAndRetrieveRequestByUserId,getRequestsAndInvitations,respondToInvitations} from "../controllers/friends.controller.js"
+import {makeAndRetrieveRequestByUserId,getRequestsAndInvitations,respondToInvitations,getAllFriends} from "../controllers/friends.controller.js"
 
 const router = Router();
 
@@ -13,6 +13,8 @@ router.route("/L/get-all-requests-invitations")
 
 router.route("/respond-to-invitation")
     .get(verifyJWT,verifyIsOtpValidated,respondToInvitations)
+router.route("/L/get-all-friends")
+    .get(verifyJWT,verifyIsOtpValidated,getAllFriends)
 
 
 export default router

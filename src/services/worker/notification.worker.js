@@ -1,41 +1,60 @@
-import { NotificationTypesEnum, SocketEventEnum } from "../../constants.js"
-import { Worker } from "bullmq"
-import { redisConnection } from "../../redis/index.js"
-import { getFollowers, getFriends } from "../../utils"
-import { app } from "../../app.js"
-const io = app.get('io')
-new Worker('send-notification', async (job) => {
-    
-    console.log('Processing job:', job.id);
-    console.log('Notification data:', job.data);
+import { Worker } from 'bullmq';
+import { redisConnection } from '../../redis/index.js';
+import { NotificationTypesEnum } from '../../constants.js';
+import { getFollowers } from '../../utils/notifications/followers.js';
+import { getFriends } from '../../utils/notifications/friends.js';
+import { io } from '../../app.js';
+import { emitSocketEvent } from '../../socket/index.js';
+const worker = new Worker('send-notification', async (job) => {
+    console.log("Worker started processing job");
+    try {
+        console.log('Processing job:', job.id);
 
-    const { userId, message = "", url = null } = job.data;
-    switch (job.data?.type) {
-        case NotificationTypesEnum.FOLLOWERS:
-            const followersList = await getFollowers(userId)
-            if (followersList[0]) {
-                followersList.forEach(follower => {
-                    emitSocketEvent(io, follower.followeeId.toString(), 'notification', { userId, message, url, type });
-                });
-            }
-            break;
+        const { userId, message = "", payload = {}, url = null, type, reciever } = job.data;
+        
+        switch (type) {
+            case NotificationTypesEnum.FOLLOWERS:
+                console.log("Processing followers notification");
+                emitSocketEvent(io, '6637dacd70735376e2f90c3c', 'notification', { userId, payload, message, url, type })
+       
+                // const followersList = await getFollowers(userId);
+                
+                // if (followersList.length > 0) {
+                //     followersList.forEach(follower => {
+                //         // 6637dacd70735376e2f90c3c
+                //         // follower.followeeId.toString()
+                //         emitSocketEvent(io, '6637dacd70735376e2f90c3c', 'notification', { userId, payload, message, url, type })
+                        
+                //     });
+                // }
+                break;
 
-        case NotificationTypesEnum.FRIENDS:
-            const friendsList = await getFriends(userId)
-            if (friendsList[0]) {
-                friendsList.forEach(friend => {
-                    emitSocketEvent(io, friend.friendUserId.toString(), 'notification', { userId, message, url, type });
-                });
-            }
-            break;
+            case NotificationTypesEnum.FRIENDS:
+                console.log("Processing friends notification");
+                const friendsList = await getFriends(userId);
+                if (friendsList.length > 0) {
+                    friendsList.forEach(friend => {
+                        emitSocketEvent(io, friend.friendUserId.toString(), 'notification', { userId,payload, message, url, type });
+                    });
+                }
+                break;
 
-        case NotificationTypesEnum.GROUP:
-            console.log("group")
-            break;
-        case NotificationTypesEnum.INDIVIDUAL:
-            console.log("individual")
-            break;
+            case NotificationTypesEnum.GROUP:
+                console.log("Processing group notification");
+                break;
+
+            case NotificationTypesEnum.INDIVIDUAL:
+                if (!reciever) break;
+                console.log("Processing individual notification");
+                emitSocketEvent(io, reciever.toString(), 'notification', { userId,payload, message, url, type });
+                break;
+
+            default:
+                console.log("Unknown notification type");
+        }
+    } catch (error) {
+        console.error('Error processing job:', job.id, error);
     }
+}, { connection: redisConnection });
 
-
-}, { redisConnection });
+export { worker };

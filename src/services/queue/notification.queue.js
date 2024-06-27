@@ -1,21 +1,24 @@
-import { Queue } from "bullmq"
-import { redisConnection } from "../../redis/index.js"
-// --------------------------------Create Queue--------------------------------------------
-
+import { Queue, Worker } from 'bullmq';
+import { redisConnection } from '../../redis/index.js';
+import { worker } from '../worker/notification.worker.js';//it is imp to just call the worker for exicution.
 const notificationQueue = new Queue('send-notification', {
-    connection: redisConnection
+    connection: redisConnection,
 });
 
-// --------------------------------Add Jobs to queue--------------------------------------------
-const sendNotifications = async ({userId,message="",url=null,type}) => {
-    await notificationQueue.add('send-notification', {
-        userId,
-        message,
-        url,
-        type
-    });
-}
+const sendNotifications = async (userId, message="",payload = "", url = null, type ,reciever=null) => {
+    try {
+        await notificationQueue.add('send-notification', {
+            userId,
+            message,
+            payload,
+            url,
+            type,
+            reciever
+        });
+    } catch (error) {
+        console.error('Error adding job to queue:', error);
+    }
+};
 
-export {
-    sendNotifications
-}
+
+export { sendNotifications, notificationQueue };

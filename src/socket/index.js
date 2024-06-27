@@ -37,10 +37,7 @@ const initializeSocketIO = (io) => {
             socket.emit(SocketEventEnum.CONNECTED_EVENT);
             
             console.log("User connected 🗼. userId: ", user._id.toString());
-
-            mountNotificationEvent(socket)
-            enjectNotificationEvent(socket)
-
+            
             socket.on(SocketEventEnum.DISCONNECT_EVENT, () => {
                 console.log("user has disconnected 🚫. userId: " + socket.user?._id);
                 if (socket.user?._id) {
@@ -58,8 +55,8 @@ const initializeSocketIO = (io) => {
 };
 
 
-const emitSocketEvent = (req, roomId, event, payload) => {
-    req.app.get("io").in(roomId).emit(event, payload);
+const emitSocketEvent = (io, roomId, event, payload) => {
+    io.in(roomId).emit(event, payload);
 };
 
 export { initializeSocketIO, emitSocketEvent };

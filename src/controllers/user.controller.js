@@ -3,11 +3,13 @@ import { ApiError } from "../utils/ApiError.js"
 import { ApiResponse } from "../utils/ApiResponse.js"
 import { User } from "../models/user.model.js"
 import jwt from "jsonwebtoken"
-import { REFRESH_TOKEN_SECRET, EMAIL_OTP_EXPIRY } from "../constants.js"
+import { REFRESH_TOKEN_SECRET, EMAIL_OTP_EXPIRY,NotificationTypesEnum } from "../constants.js"
 import { OTP } from "../models/OTP.model.js"
 import { emailVerificationContent, sendMail, forgotPasswordContent } from "../utils/mail.js"
 import mongoose from "mongoose"
 import { ForgotPassword } from "../models/forgotPassword.model.js"
+import { sendNotifications } from "../services/queue/notification.queue.js"
+
 const validateOTP = asyncHandler(
     async (req, res) => {
         try {
@@ -406,7 +408,7 @@ const loginUser = asyncHandler(
             }
             return res
                 .status(200)
-                .cookie("accessToken", accessToken, options)
+                .cookie("accessToken", accessToken)
                 .cookie("refreshToken", refreshToken, options)
                 .json(
                     new ApiResponse(
@@ -451,7 +453,7 @@ const logoutUser = asyncHandler(
 
             return res.
                 status(200)
-                .clearCookie("accessToken", options)
+                .clearCookie("accessToken")
                 .clearCookie("refreshToken", options)
                 .json(
                     new ApiResponse(
@@ -496,7 +498,7 @@ const refreshAccessToken = asyncHandler(
 
             return res
                 .status(200)
-                .cookie("accessToken", accessToken, options)
+                .cookie("accessToken", accessToken)
                 .cookie("refreshToken", newRefreshToken, options)
                 .json(
                     new ApiResponse(
@@ -539,6 +541,7 @@ const getCurrentUser = asyncHandler(
             404,
             "User not found , unauthorised access."
         )
+        //  await sendNotifications(String(req.user._id),"Hi Myself nilesh",{},"URL",NotificationTypesEnum.FOLLOWERS)
         return res
             .status(200)
             .json(

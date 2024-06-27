@@ -18,7 +18,7 @@ const io = new Server(httpServer, {
 });
 
 app.set("io", io); 
-
+initializeSocketIO(io);
 
 
 app.use(
@@ -93,6 +93,13 @@ import friendsRouter from "./routes/friends.routes.js"
 app.use("/api/v1/friends",friendsRouter)
 //-------------------------------------------------------------
 
+//Friend Operations Routes
+//-------------------------------------------------------------
+import callsRouter from "./routes/call.routes.js"
+app.use("/api/v1/call",callsRouter)
+//-------------------------------------------------------------
+
+
 
 //Post Operations Routes
 //-------------------------------------------------------------
@@ -131,6 +138,4 @@ app.use("/api/v1/profile",ProfileRouter)
 //-------------------------------------------------------------
 
 
-initializeSocketIO(io);
-
-export { httpServer };
+export { httpServer , io };

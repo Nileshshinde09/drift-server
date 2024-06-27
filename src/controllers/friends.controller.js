@@ -121,7 +121,7 @@ const getRequestsAndInvitations = asyncHandler(
                         }
                     }
                 ]
-                
+
             )
 
             const inviteAggregation = await FriendRequests.aggregate(
@@ -156,7 +156,7 @@ const getRequestsAndInvitations = asyncHandler(
                         }
                     },
                     {
-                        $unwind:"$invitedBy"
+                        $unwind: "$invitedBy"
                     },
                     {
                         $project: {
@@ -250,9 +250,88 @@ const respondToInvitations = asyncHandler(
     }
 
 )
+const getAllFriends = asyncHandler(
+    async (req, res) => {
+        const user = req?.user;
+        if (!user) throw new ApiError(
+            404,
+            "User not found , Unauthorised Access."
+        )
+        const friendsAggregation1 = await FriendRequests.aggregate(
+            [
+                {
+                    $match: {
+                        sender: new mongoose.Types.ObjectId(user?._id),
+                        status: true
+                    }
+                },
+                {
+                    $lookup:{
+                        from:"users",
+                        foreignField:"_id",
+                        localField:"receiver",
+                        as:"frinds",
+                        pipeline:[
+                            {
+                                $project:{
+                                    _id:1,
+                                    avatar:1,
+                                    username:1,
+                                    fullName:1
+                                }
+                            }
+                        ]
+                    }
+                },
 
+
+            ]
+        )
+        const friendsAggregation2 = await FriendRequests.aggregate(
+            [
+                {
+                    $match: {
+
+                        receiver: new mongoose.Types.ObjectId(user?._id),
+                        status: true
+                    }
+                },
+                {
+                    $lookup:{
+                        from:"users",
+                        foreignField:"_id",
+                        localField:"sender",
+                        as:"frinds",
+                        pipeline:[
+                            {
+                                $project:{
+                                    _id:1,
+                                    avatar:1,
+                                    username:1,
+                                    fullName:1
+                                }
+                            }
+                        ]
+                    }
+                },
+            ]
+        )
+        return res.status(200)
+            .json(
+                new ApiResponse(
+                    200,
+                    {
+                        ...friendsAggregation1,
+                        ...friendsAggregation2
+                    },
+                    "done"
+                )
+            )
+    }
+)
 export {
     makeAndRetrieveRequestByUserId,
     getRequestsAndInvitations,
-    respondToInvitations
+    respondToInvitations,
+    getAllFriends
 }

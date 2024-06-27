@@ -1,7 +1,7 @@
-import { ApiError } from "../ApiError"
+import { ApiError } from "../ApiError.js"
 import { Follows } from "../../models/follow.model.js"
 
-export const getFollowers = async (userId) => {
+const getFollowers = async (userId) => {
     if (!userId) throw new ApiError(
         404,
         "UserId not found."
@@ -23,4 +23,8 @@ export const getFollowers = async (userId) => {
             error.message || "Something went wrong while fetching user data."
         )
     }
+}
+
+export {
+    getFollowers
 }
