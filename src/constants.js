@@ -62,6 +62,20 @@ export const GENDER_TYPE = [
     "others"
 ]
 
+export const BAN_REASONS = [
+    "Sexual Remarks",
+    "Violent speech/Activity",
+    "Hateful or abusive Activity",
+    "Harmful or dangerous Activity",
+    "Spam or misleading Activity"
+]
+export const BAN_REASONS_ENUM=Object.freeze({  
+    SEXUAL_REMARKS:"Sexual Remarks",
+    VOILENT_SPEECH:"Violent speech/Activity",
+    HATEFUL_ABUSIVE:"Hateful or abusive Activity",
+    HARMFUL:"Harmful or dangerous Activity",
+    SPAM:"Spam or misleading Activity"
+})
 export const TYPES_OF_NOTIFICATION = [
     "FriendRequest",
     "TimeTrek",
@@ -85,14 +99,6 @@ export const PARTICIPANTS_TYPES = [
     "Co-Host",
 ]
 
-export const BAN_REASONS = [
-    "Sexual Remarks",
-    "Violent speech/Activity",
-    "Hateful or abusive Activity",
-    "Harmful or dangerous Activity",
-    "Spam or misleading Activity"
-]
-
 export const FEATURE_SECTIONS = [
     "Acoustics",
     "AnoGroups",
@@ -106,6 +112,18 @@ export const FEATURE_SECTIONS = [
     "TimeTrek",
     "Overall"
 ]
+export const FEATURE_SECTIONS_ENUM = Object.freeze({
+    ACOUSTICS:"Acoustics",
+    ANOGROPS:"AnoGroups",
+    COMMENTS:"Comments",
+    DIRECTVISION:"DirectVision",
+    DM:"DM",
+    DRIFTMOMENTS:"DriftMoments",
+    GROUPVISON:"GroupVision",
+    JOURNEYJOURNALS:"JourneyJournals",
+    MELODY:"Melody",
+    TIMETREK:"TimeTrek",
+    OVERALL:"Overall"})
 
 export const VIEWS_CONTENT_TYPES = [
     "Post",
