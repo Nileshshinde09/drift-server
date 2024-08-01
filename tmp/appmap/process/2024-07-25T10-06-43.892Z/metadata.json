@@ -1,0 +1,18 @@
+{
+  "client": {
+    "name": "appmap-node",
+    "version": "2.23.1",
+    "url": "https://github.com/getappmap/appmap-node"
+  },
+  "language": {
+    "name": "javascript",
+    "engine": "Node.js",
+    "version": "v20.11.1"
+  },
+  "app": "drift_server",
+  "recorder": {
+    "type": "process",
+    "name": "process"
+  },
+  "name": "2024-07-25T10:06:43.892Z"
+}

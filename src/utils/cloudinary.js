@@ -12,6 +12,7 @@ cloudinary.config({
 const uploadOnCloudinary = async (localFilePath,specifiedFolder=null) => {
     try 
     {
+        
         if(!localFilePath) return null
         let response=null
         if(specifiedFolder){
@@ -23,6 +24,7 @@ const uploadOnCloudinary = async (localFilePath,specifiedFolder=null) => {
             response = await cloudinary.uploader.upload(localFilePath,{
                 resource_type:"auto"
             }) 
+            
         }
         fs.unlinkSync(localFilePath)
         return response;

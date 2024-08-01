@@ -5,9 +5,11 @@ import { verifyIsOtpValidated } from "../middlewares/emailValidation.middlerware
 import {updateAccountDetails} from "../controllers/user.controller.js"
 const router = Router();
 
+router.use(verifyJWT, verifyIsOtpValidated)
+
 router.route("/S/get-profile/:username")
-    .get(verifyJWT,verifyIsOtpValidated,getUserProfileByUsername)
+    .get(getUserProfileByUsername)
 router.route("/S/update-profile")
-    .put(verifyJWT, verifyIsOtpValidated, updateAccountDetails)
+    .put(updateAccountDetails)
 
 export default router

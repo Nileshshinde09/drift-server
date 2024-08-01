@@ -4,7 +4,8 @@ import { ApiResponse } from "../utils/ApiResponse.js"
 import { FriendRequests } from "../models/friendRequest.model.js"
 import { Follows } from "../models/follow.model.js"
 import mongoose from "mongoose"
-
+import { sendNotifications } from "../services/queue/notification.queue.js"
+import { NotificationURLs, NotificationTypesEnum, NotificationMessages } from "../constants.js"
 const makeAndRetrieveRequestByUserId = asyncHandler(
     async (req, res) => {
         const senderId = req?.user?._id;
@@ -50,6 +51,14 @@ const makeAndRetrieveRequestByUserId = asyncHandler(
                     receiver: receiverId
                 }
             )
+            if (makeRequest) sendNotifications(
+                req.user._id.toString(),
+                NotificationMessages.FRIEND_REQUEST_MESSAGE,
+                "",
+                NotificationURLs.MAKE_REQUEST_URL + req.user.username?.toString(),
+                NotificationTypesEnum.INDIVIDUAL,
+                receiverId?.toString(),
+            )
             if (makeRequest) return res
                 .status(200)
                 .json(
@@ -78,124 +87,123 @@ const getRequestsAndInvitations = asyncHandler(
         try {
             if (!user) throw new ApiError(
                 404,
-                "User not found,Unauthorised request."
-            )
+                "User not found, unauthorized request."
+            );
 
-            const requesteAggregation = await FriendRequests.aggregate(
-                [
-                    {
-                        $match: {
-                            $and: [
-                                { sender: new mongoose.Types.ObjectId(user?._id) },
-                                { status: false }
-                            ]
-                        }
-                    },
-                    {
-                        $lookup: {
-                            from: "users",
-                            localField: "sender",
-                            foreignField: "_id",
-                            as: "requestedTo",
-                            pipeline: [
-                                {
-                                    $project: {
-                                        _id: 1,
-                                        username: 1,
-                                        avatar: 1,
-                                        email: 1
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    {
-                        $unwind: "$requestedTo"
-                    },
-                    {
-                        $project: {
-                            _id: "$requestedTo._id",
-                            username: "$requestedTo.username",
-                            avatar: "$requestedTo.avatar",
-                            email: "$requestedTo.email"
-                        }
+            // Aggregation for friend requests sent by the user
+            // const requestAggregation = await FriendRequests.aggregate([
+            //     {
+            //         $match: {
+            //             sender: new mongoose.Types.ObjectId(user?._id),
+            //             status: false
+            //         }
+            //     },
+            //     {
+            //         $lookup: {
+            //             from: "users",
+            //             localField: "receiver",
+            //             foreignField: "_id",
+            //             as: "requestedTo",
+            //             pipeline: [
+            //                 {
+            //                     $project: {
+            //                         _id: 1,
+            //                         username: 1,
+            //                         avatar: 1,
+            //                         email: 1,
+            //                         createdAt: 1,
+            //                         fullName: 1
+            //                     }
+            //                 }
+            //             ]
+            //         }
+            //     },
+            //     {
+            //         $unwind: "$requestedTo"
+            //     },
+            //     {
+            //         $project: {
+            //             _id: "$requestedTo._id",
+            //             username: "$requestedTo.username",
+            //             avatar: "$requestedTo.avatar",
+            //             email: "$requestedTo.email",
+            //             createdAt: "$requestedTo.createdAt",
+            //             fullName: "$requestedTo.fullName"
+            //         }
+            //     }
+            // ]);
+
+            // Aggregation for friend invitations received by the user
+            const requestAggregation = await FriendRequests.aggregate([
+                {
+                    $match: {
+                        receiver: new mongoose.Types.ObjectId(user?._id),
+                        status: false
                     }
-                ]
-
-            )
-
-            const inviteAggregation = await FriendRequests.aggregate(
-                [
-                    {
-                        $match: {
-                            $and: [
-                                { receiver: new mongoose.Types.ObjectId(user?._id) },
-                                { status: false }
-                            ]
-                        }
-                    },
-                    {
-                        $count: "requestCount"
-                    },
-                    {
-                        $lookup: {
-                            from: "users",
-                            localField: "sender",
-                            foreignField: "_id",
-                            as: "invitedBy",
-                            pipeline: [
-                                {
-                                    $project: {
-                                        _id: 1,
-                                        username: 1,
-                                        avatar: 1,
-                                        email: 1
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    {
-                        $unwind: "$invitedBy"
-                    },
-                    {
-                        $project: {
-                            _id: "$invitedBy._id",
-                            username: "$invitedBy.username",
-                            avatar: "$invitedBy.avatar",
-                            email: "$invitedBy.email"
-                        }
-                    }
-
-                ]
-            )
-            if (requesteAggregation && inviteAggregation)
-                return res.status(200)
-                    .json(
-                        new ApiResponse(
-                            200,
+                },
+                {
+                    $lookup: {
+                        from: "users",
+                        localField: "sender",
+                        foreignField: "_id",
+                        as: "invitedBy",
+                        pipeline: [
                             {
-                                requests: requesteAggregation,
-                                invitations: inviteAggregation
-                            },
-                            "Request Fetched Successfully!"
-                        )
+                                $project: {
+                                    _id: 1,
+                                    username: 1,
+                                    avatar: 1,
+                                    email: 1,
+                                    createdAt: 1,
+                                    fullName: 1
+                                }
+                            }
+                        ]
+                    }
+                },
+                {
+                    $unwind: "$invitedBy"
+                },
+                {
+                    $project: {
+                        _id: "$invitedBy._id",
+                        username: "$invitedBy.username",
+                        avatar: "$invitedBy.avatar",
+                        email: "$invitedBy.email",
+                        createdAt: "$invitedBy.createdAt",
+                        fullName: "$invitedBy.fullName",
+                        requestId: "$$ROOT._id"
+                    }
+                }
+            ]);
+
+            if (requestAggregation) {
+                return res.status(200).json(
+                    new ApiResponse(
+                        200,
+                        {
+                            requests: requestAggregation
+                        },
+                        "Requests fetched successfully!"
                     )
+                );
+            }
 
         } catch (error) {
             throw new ApiError(
                 500,
                 error.message || "Something went wrong while getting requests!"
-            )
+            );
         }
     }
-)
+);
 
 const respondToInvitations = asyncHandler(
     async (req, res) => {
         const user = req?.user
         const { isAccepted, invitationId } = req?.body;
         try {
+
             if (!user) throw new ApiError(
                 404,
                 "User not found"
@@ -207,7 +215,15 @@ const respondToInvitations = asyncHandler(
                 )
             }
             if (invitationId && !isAccepted) {
-                await FriendRequests.findByIdAndDelete(invitationId)
+                const response = await FriendRequests.findByIdAndDelete(invitationId)
+                if (response) sendNotifications(
+                    req.user._id.toString(),
+                    NotificationMessages.FRIEND_REQUEST_REJECTED_MESSAGE,
+                    "",
+                    NotificationURLs.MAKE_REQUEST_URL + req.user.username?.toString(),
+                    NotificationTypesEnum.INDIVIDUAL,
+                    response.sender?.toString(),
+                )
                 return res.status(200)
                     .json(
                         new ApiResponse(
@@ -228,6 +244,16 @@ const respondToInvitations = asyncHandler(
                     404,
                     "Request not found with given Id"
                 )
+                if (response) sendNotifications(
+                    req.user._id.toString(),
+                    NotificationMessages.FRIEND_REQUEST_ACCEPTED_MESSAGE,
+                    "",
+                    NotificationURLs.MAKE_REQUEST_URL + req.user.username?.toString(),
+                    NotificationTypesEnum.INDIVIDUAL,
+                    response.sender?.toString(),
+
+                )
+
                 return res.status(200)
                     .json(
                         new ApiResponse(
@@ -235,7 +261,7 @@ const respondToInvitations = asyncHandler(
                             {
                                 isAccepted: true
                             },
-                            "Invitation Rejected Successfully!"
+                            "Invitation Accepted Successfully!"
                         )
                     )
             }
@@ -266,18 +292,19 @@ const getAllFriends = asyncHandler(
                     }
                 },
                 {
-                    $lookup:{
-                        from:"users",
-                        foreignField:"_id",
-                        localField:"receiver",
-                        as:"frinds",
-                        pipeline:[
+                    $lookup: {
+                        from: "users",
+                        foreignField: "_id",
+                        localField: "receiver",
+                        as: "friend",
+                        pipeline: [
                             {
-                                $project:{
-                                    _id:1,
-                                    avatar:1,
-                                    username:1,
-                                    fullName:1
+                                $project: {
+                                    _id: 1,
+                                    avatar: 1,
+                                    username: 1,
+                                    fullName: 1,
+                                    createdAt: 1
                                 }
                             }
                         ]
@@ -297,18 +324,20 @@ const getAllFriends = asyncHandler(
                     }
                 },
                 {
-                    $lookup:{
-                        from:"users",
-                        foreignField:"_id",
-                        localField:"sender",
-                        as:"frinds",
-                        pipeline:[
+                    $lookup: {
+                        from: "users",
+                        foreignField: "_id",
+                        localField: "sender",
+                        as: "friend",
+                        pipeline: [
                             {
-                                $project:{
-                                    _id:1,
-                                    avatar:1,
-                                    username:1,
-                                    fullName:1
+                                $project: {
+                                    _id: 1,
+                                    avatar: 1,
+                                    username: 1,
+                                    fullName: 1,
+                                    createdAt: 1
+
                                 }
                             }
                         ]
@@ -320,9 +349,87 @@ const getAllFriends = asyncHandler(
             .json(
                 new ApiResponse(
                     200,
-                    {
+                    [
                         ...friendsAggregation1,
                         ...friendsAggregation2
+                    ],
+                    "done"
+                )
+            )
+    }
+)
+
+const checkIsFriends = asyncHandler(
+    async (req, res) => {
+        const user = req?.user;
+        const {remote_id} = req.params;
+        if (!user) throw new ApiError(
+            404,
+            "User not found , Unauthorised Access."
+        )
+        if (!remote_id) throw new ApiError(
+            404,
+            "remote Id user not found."
+        )
+        const response = await FriendRequests.aggregate(
+            [
+                {
+                    $match: {
+                        $or: [
+                            {
+                                receiver: new mongoose.Types.ObjectId(user?._id),
+                                sender: new mongoose.Types.ObjectId(remote_id),
+                                status: true
+                            },
+                            {
+                        
+                                sender: new mongoose.Types.ObjectId(user?._id),
+                                receiver: new mongoose.Types.ObjectId(remote_id),
+                                status: true
+                            
+                            }
+                        ]
+                    }
+                }
+            ]
+        )
+        return res.status(200)
+            .json(
+                new ApiResponse(
+                    200,
+                    {
+                        ...response[0]
+                    },
+                    "done"
+                )
+            )
+    }
+)
+
+const removeFriendFromFriendList = asyncHandler(
+    async (req, res) => {
+        const user = req?.user;
+        const {requestId} = req.params;
+        
+        if (!user) throw new ApiError(
+            404,
+            "User not found , Unauthorised Access."
+        )
+        if (!requestId) throw new ApiError(
+            404,
+            "request Id not found."
+        )
+        const response = await FriendRequests.findByIdAndDelete(requestId)
+        if(!response) throw new ApiError(
+            500,
+            "something went wrong while removing friend from friend list."
+        )
+        return res.status(200)
+            .json(
+                new ApiResponse(
+                    200,
+                    {
+                        isRemoved:true
                     },
                     "done"
                 )
@@ -330,6 +437,8 @@ const getAllFriends = asyncHandler(
     }
 )
 export {
+    checkIsFriends,
+    removeFriendFromFriendList,
     makeAndRetrieveRequestByUserId,
     getRequestsAndInvitations,
     respondToInvitations,

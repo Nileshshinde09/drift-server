@@ -14,9 +14,15 @@ import {
     sendResetForgotPasswordEmail,
     resetForgotPasswordVerification
 } from "../controllers/user.controller.js"
-import { verifyJWT,verifyResetForgotPasswordJWT } from "../middlewares/auth.middleware.js";
+import { verifyJWT, verifyResetForgotPasswordJWT } from "../middlewares/auth.middleware.js";
 import { verifyIsOtpValidated } from "../middlewares/emailValidation.middlerware.js";
+import { UserBanned } from "../middlewares/banned.middleware.js";
 const router = Router();
+
+
+
+router.route("/current-user")
+    .get(verifyJWT,verifyIsOtpValidated,UserBanned, getCurrentUser)
 
 router.route("/register")
     .post(registerUser)
@@ -24,11 +30,12 @@ router.route("/register")
 router.route("/login")
     .post(loginUser)
 
+router.route("/refresh-token")
+    .post(refreshAccessToken)
+
 router.route("/logout")
     .post(verifyJWT, verifyIsOtpValidated, logoutUser)
 
-router.route("/refresh-token")
-    .post(refreshAccessToken)
 
 router.route("/change-password")
     .post(verifyJWT, verifyIsOtpValidated, changeCurrentPassword)
@@ -42,8 +49,6 @@ router.route("/generate-otp")
 router.route("/validate-otp")
     .post(verifyJWT, validateOTP)
 
-router.route("/current-user")
-    .get(verifyJWT, getCurrentUser)
 
 router.route("/check-unique-username")
     .get(isUsernameUnique)
@@ -55,6 +60,6 @@ router.route("/send-reset-forgot-password-email")
     .post(sendResetForgotPasswordEmail)
 
 router.route("/reset-forgot-password-page-verification")
-    .post(verifyResetForgotPasswordJWT,resetForgotPasswordVerification)
-    
+    .post(verifyResetForgotPasswordJWT, resetForgotPasswordVerification)
+
 export default router

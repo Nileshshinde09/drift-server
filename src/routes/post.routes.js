@@ -1,4 +1,4 @@
-import { uploadMultiple,upload } from "../middlewares/multer.middleware.js";
+import { uploadMultiple,uploadSingle,upload } from "../middlewares/multer.middleware.js";
 import { Router } from "express";
 import { verifyJWT } from "../middlewares/auth.middleware.js";
 import { verifyIsOtpValidated } from "../middlewares/emailValidation.middlerware.js";
@@ -20,7 +20,7 @@ router.route("/create-post-with-images")
     .post(verifyJWT, verifyIsOtpValidated, uploadMultiple, createPostWithImages)
 
 router.route("/create-post-with-video")
-    .post(verifyJWT, verifyIsOtpValidated, upload.single('file'), createPostWithVideo)
+    .post(verifyJWT, verifyIsOtpValidated, uploadSingle, createPostWithVideo)
 
 router.route("/get-all-posts")
     .get(verifyJWT, verifyIsOtpValidated, getAllPost)
@@ -38,7 +38,8 @@ router.route("/update-post-images")
     .put(verifyJWT, verifyIsOtpValidated, uploadMultiple, updatePostImagesByPostId)
 
 router.route("/update-post-video")
-    .put(verifyJWT, verifyIsOtpValidated, upload.single('file'), updatePostVideosByPostId)
+    .put(verifyJWT, verifyIsOtpValidated, upload.single('files'), updatePostVideosByPostId)
+
 
 router.route("/delete-post")
     .delete(verifyJWT, verifyIsOtpValidated, deletePost)

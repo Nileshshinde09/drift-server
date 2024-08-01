@@ -6,12 +6,10 @@ import { getFriends } from '../../utils/notifications/friends.js';
 import { io } from '../../app.js';
 import { emitSocketEvent } from '../../socket/index.js';
 const worker = new Worker('send-notification', async (job) => {
-    console.log("Worker started processing job");
     try {
         console.log('Processing job:', job.id);
-
         const { userId, message = "", payload = {}, url = null, type, reciever } = job.data;
-        
+        console.log(job.data);
         switch (type) {
             case NotificationTypesEnum.FOLLOWERS:
                 console.log("Processing followers notification");
@@ -44,6 +42,7 @@ const worker = new Worker('send-notification', async (job) => {
                 break;
 
             case NotificationTypesEnum.INDIVIDUAL:
+                
                 if (!reciever) break;
                 console.log("Processing individual notification");
                 emitSocketEvent(io, reciever.toString(), 'notification', { userId,payload, message, url, type });

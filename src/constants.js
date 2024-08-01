@@ -33,15 +33,49 @@ export const SocketEventEnum = Object.freeze({
     NOTIFICATION_MOUNT_EVENT: "notificationMountEvent",
     NOTIFICATION_ENJECT_EVENT: "notificationEnjectEvent"
 });
-
+export const ChatEventEnum = Object.freeze({
+    // ? once user is ready to go
+    CONNECTED_EVENT: "connected",
+    // ? when user gets disconnected
+    DISCONNECT_EVENT: "disconnect",
+    // ? when user joins a socket room
+    JOIN_CHAT_EVENT: "joinChat",
+    // ? when participant gets removed from group, chat gets deleted or leaves a group
+    LEAVE_CHAT_EVENT: "leaveChat",
+    // ? when admin updates a group name
+    UPDATE_GROUP_NAME_EVENT: "updateGroupName",
+    // ? when new message is received
+    MESSAGE_RECEIVED_EVENT: "messageReceived",
+    // ? when there is new one on one chat, new group chat or user gets added in the group
+    NEW_CHAT_EVENT: "newChat",
+    // ? when there is an error in socket
+    SOCKET_ERROR_EVENT: "socketError",
+    // ? when participant stops typing
+    STOP_TYPING_EVENT: "stopTyping",
+    // ? when participant starts typing
+    TYPING_EVENT: "typing",
+    // ? when message is deleted
+    MESSAGE_DELETE_EVENT: "messageDeleted",
+  });
+  export const AvailableChatEvents = Object.values(ChatEventEnum);
 export const NotificationMessages = Object.freeze(
     {
-        VIDEO_CALL_NOTIFICATION_MESSAGE: "incomming video call..."
+        VIDEO_CALL_NOTIFICATION_MESSAGE: "incomming video call...",
+        CHAT_INITIALIZATION_MESSAGE: "Someone intrested to chat with you 🤔.",
+        INDIVIDUAL_CHAT_MESSAGE:"Message from : ",
+        FRIEND_REQUEST_MESSAGE:"Friend Request from: ",
+        FRIEND_REQUEST_ACCEPTED_MESSAGE:"Friend Request Accepted: ",
+        FRIEND_REQUEST_REJECTED_MESSAGE:"Friend Request Rejected: ",
+        JJ_CHAT_PARTICIPATION_MESSAGE:"Now you are the part of Journey Journals By",
+        JOIN_JJ:"Participant joined your Journey Journal"
     }
 )
 export const NotificationURLs = Object.freeze(
     {
-        VIDEO_CALL_NOTIFICATION_URL: "/"
+        VIDEO_CALL_NOTIFICATION_URL: "/",
+        CHAT_INITIALIZATION_URL:"/messanger/chat/",
+        GROUP_CHAT_INITIALIZATION_URL:"/messanger/group-chat/",
+        MAKE_REQUEST_URL:"/profile/@"
     }
 )
 export const NotificationTypesEnum = Object.freeze({
@@ -61,7 +95,20 @@ export const GENDER_TYPE = [
     "female",
     "others"
 ]
-
+export const BAN_REASONS = [
+    "Sexual Remarks",
+    "Violent speech/Activity",
+    "Hateful or abusive Activity",
+    "Harmful or dangerous Activity",
+    "Spam or misleading Activity"
+]
+export const BAN_REASONS_ENUM=Object.freeze({  
+    SEXUAL_REMARKS:"Sexual Remarks",
+    VOILENT_SPEECH:"Violent speech/Activity",
+    HATEFUL_ABUSIVE:"Hateful or abusive Activity",
+    HARMFUL:"Harmful or dangerous Activity",
+    SPAM:"Spam or misleading Activity"
+})
 export const TYPES_OF_NOTIFICATION = [
     "FriendRequest",
     "TimeTrek",
@@ -85,14 +132,6 @@ export const PARTICIPANTS_TYPES = [
     "Co-Host",
 ]
 
-export const BAN_REASONS = [
-    "Sexual Remarks",
-    "Violent speech/Activity",
-    "Hateful or abusive Activity",
-    "Harmful or dangerous Activity",
-    "Spam or misleading Activity"
-]
-
 export const FEATURE_SECTIONS = [
     "Acoustics",
     "AnoGroups",
@@ -106,6 +145,18 @@ export const FEATURE_SECTIONS = [
     "TimeTrek",
     "Overall"
 ]
+export const FEATURE_SECTIONS_ENUM = Object.freeze({
+    ACOUSTICS:"Acoustics",
+    GROUPS:"groups",
+    COMMENTS:"comments",
+    DIRECTVISION:"videocalls",
+    DM:"dm",
+    DRIFTMOMENTS:"DriftMoments",
+    GROUPVISON:"GroupVision",
+    JOURNEYJOURNALS:"JourneyJournals",
+    MELODY:"Melody",
+    TIMETREK:"TimeTrek",
+    OVERALL:"Overall"})
 
 export const VIEWS_CONTENT_TYPES = [
     "Post",
@@ -123,7 +174,18 @@ export const PROHIBITION_DURATION = [
     "1 year",
     "Permanent"
 ];
-
+export const PROHIBITION_DURATION_ENUM = ({
+    H0:"0",
+    H1:"1 hour",
+    D1:"1 day",
+    W1:"1 week",
+    M1:"1 month",
+    M2:"2 months",
+    M3:"3 months",
+    M4:"5 months",
+    Y1:"1 year",
+    P:"Permanent"
+})
 export const SONG_GENERS = [
     "Pop",
     "Hip-Hop/Rap",

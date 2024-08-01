@@ -1,0 +1,7 @@
+[
+  "db/index",
+  "socket/index",
+  "utils/asyncHandler",
+  "validator/common/mongodb.validators",
+  "validator/message.validators"
+]
