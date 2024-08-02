@@ -7,6 +7,7 @@ const notificationQueue = new Queue('send-notification', {
 
 const sendNotifications = async (userId, message="",payload = "", url = null, type ,reciever=null) => {
     try {
+        console.log("send notifications");
         await notificationQueue.add('send-notification', {
             userId,
             message,

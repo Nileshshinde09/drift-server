@@ -28,7 +28,7 @@ const processPosts = async (aggregatePosts) => {
                         comments: user.comments,
                         creator: {
                             _id: user._id,
-                            username: user.username,
+                            username: user?.username,
                             avatar: user.avatar,
                         },
                     };
@@ -105,11 +105,12 @@ const commonVideoUploader = async (req) => {
             401,
             "User not found."
         )
-        if (!req.file) throw new ApiError(
+        if (!req.files) throw new ApiError(
             404,
             "Video file not found, Provide file."
         )
-        const uploadedFile = await uploadOnCloudinary(req?.file?.path)
+        const uploadedFile = await uploadOnCloudinary(req.files[0].path)
+
         if (!uploadedFile) throw new ApiError(
             500,
             "Something went wrong while uploading video file on Cloudinary"
@@ -136,6 +137,7 @@ const commonVideoUploader = async (req) => {
             500,
             "Something went wrong while storing Video in database !"
         )
+       
         return uploadedVideo
 
     } catch (error) {
@@ -163,7 +165,7 @@ const createPostWithImages = asyncHandler(
             404,
             "images not found , Images are required to procceed."
         )
-
+        
         const imageResponses = await commonImageUploader(req)
         console.log(imageResponses);
         if (!imageResponses) throw new ApiError(
@@ -221,7 +223,8 @@ const createPostWithVideo = asyncHandler(
             400,
             "User not present, unauthorised access"
         )
-        if (!req.file) throw new ApiError(
+        
+        if (!req.files) throw new ApiError(
             404,
             "video not found , video are required to procceed."
         )
@@ -242,6 +245,7 @@ const createPostWithVideo = asyncHandler(
                 "Something went while uploading post to database"
             )
         }
+        
         const createdPost = await Posts.aggregate([
             {
                 $match: {
@@ -255,7 +259,7 @@ const createPostWithVideo = asyncHandler(
             },
             ...PostCommonAggregration(req?.user?._id)
         ])
-
+        console.log(createdPost);
         return res.
             status(200).
             json(
@@ -545,6 +549,7 @@ const updatePostImagesByPostId = asyncHandler(
 
     }
 )
+
 const updatePostVideosByPostId = asyncHandler(
     async (req, res) => {
         const userId = req?._id;
@@ -916,5 +921,4 @@ export {
     getPostFeed,
     getAllUserOwnedPosts,
     getPostById
-
 }

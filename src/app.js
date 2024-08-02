@@ -137,5 +137,23 @@ import ProfileRouter from "./routes/profile.routes.js"
 app.use("/api/v1/profile",ProfileRouter)
 //-------------------------------------------------------------
 
+//Chat Operations Routes
+//-------------------------------------------------------------
+import ChatRouter from "./routes/chat.routes.js"
+app.use("/api/v1/chat",ChatRouter)
+//-------------------------------------------------------------
+
+//Chat Operations Routes
+//-------------------------------------------------------------
+import MessagesRouter from "./routes/message.routes.js"
+app.use("/api/v1/messages",MessagesRouter)
+//-------------------------------------------------------------
+
+//Journey Journal Operations Routes
+//-------------------------------------------------------------
+import JJRouter from "./routes/JourneyJournal.routes.js"
+app.use("/api/v1",JJRouter)
+//-------------------------------------------------------------
+
 
 export { httpServer , io };

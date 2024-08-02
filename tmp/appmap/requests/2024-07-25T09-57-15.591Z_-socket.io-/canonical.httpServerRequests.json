@@ -1,0 +1,7 @@
+[
+  {
+    "route": "POST /socket.io/",
+    "parameters": "(EIO,transport,t,sid)",
+    "status": 200
+  }
+]

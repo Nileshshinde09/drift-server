@@ -1,5 +1,5 @@
 import mongoose,{Schema} from "mongoose";
-import { BAN_REASONS,FEATURE_SECTIONS,FEATURE_SECTIONS_ENUM,PROHIBITION_DURATION } from "../constants";
+import { BAN_REASONS,FEATURE_SECTIONS,FEATURE_SECTIONS_ENUM,PROHIBITION_DURATION } from "../constants.js";
 
 const reportsSchema = new Schema(
     {

@@ -3,12 +3,13 @@ import { ApiError } from "../utils/ApiError.js"
 import { ApiResponse } from "../utils/ApiResponse.js"
 import { User } from "../models/user.model.js"
 import jwt from "jsonwebtoken"
-import { REFRESH_TOKEN_SECRET, EMAIL_OTP_EXPIRY,NotificationTypesEnum } from "../constants.js"
+import { REFRESH_TOKEN_SECRET, EMAIL_OTP_EXPIRY, NotificationTypesEnum } from "../constants.js"
 import { OTP } from "../models/OTP.model.js"
 import { emailVerificationContent, sendMail, forgotPasswordContent } from "../utils/mail.js"
 import mongoose from "mongoose"
 import { ForgotPassword } from "../models/forgotPassword.model.js"
 import { sendNotifications } from "../services/queue/notification.queue.js"
+import { emitSocketEvent } from "../socket/index.js"
 
 const validateOTP = asyncHandler(
     async (req, res) => {
@@ -542,6 +543,12 @@ const getCurrentUser = asyncHandler(
             "User not found , unauthorised access."
         )
         //  await sendNotifications(String(req.user._id),"Hi Myself nilesh",{},"URL",NotificationTypesEnum.FOLLOWERS)
+        await User.findByIdAndUpdate(
+            req.user._id,
+            {
+                status: "Online"
+            }
+        )
         return res
             .status(200)
             .json(
@@ -653,7 +660,7 @@ const generateOTP = asyncHandler(
             )
             try {
 
-                const emailContent = emailVerificationContent(req.user.username, generatedOTP.otp);
+                const emailContent = emailVerificationContent(req.user?.username, generatedOTP.otp);
                 await sendMail(emailContent, req.user.email, "Drift Email Verification OTP");
 
             } catch (error) {
@@ -709,7 +716,7 @@ const sendResetForgotPasswordEmail = asyncHandler(
         const token = await user.generateResetPasswordSecurityToken()
         const URL = `${passwordResetUrl}${token}`
         try {
-            const emailContent = forgotPasswordContent(user.username, URL);
+            const emailContent = forgotPasswordContent(user?.username, URL);
             await sendMail(emailContent, user.email, "Drift Reset Forgot Password Email.");
             const isUserExist = await ForgotPassword.findOne({
                 userId: user._id,

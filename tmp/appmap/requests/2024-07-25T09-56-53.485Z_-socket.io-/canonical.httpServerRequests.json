@@ -1,0 +1,7 @@
+[
+  {
+    "route": "GET /socket.io/",
+    "parameters": "(EIO,transport,t,sid)",
+    "status": null
+  }
+]

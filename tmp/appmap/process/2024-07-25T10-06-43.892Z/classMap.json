@@ -1,0 +1,92 @@
+[
+  {
+    "name": "db",
+    "type": "package",
+    "children": [
+      {
+        "type": "class",
+        "name": "index",
+        "children": [
+          {
+            "type": "function",
+            "name": "connectDB",
+            "static": true,
+            "location": "src\\db\\index.js:5"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "socket",
+    "type": "package",
+    "children": [
+      {
+        "type": "class",
+        "name": "index",
+        "children": [
+          {
+            "type": "function",
+            "name": "initializeSocketIO",
+            "static": true,
+            "location": "src\\socket\\index.js:8"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "utils",
+    "type": "package",
+    "children": [
+      {
+        "type": "class",
+        "name": "asyncHandler",
+        "children": [
+          {
+            "type": "function",
+            "name": "asyncHandler",
+            "static": true,
+            "location": "src\\utils\\asyncHandler.js:2"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "validator",
+    "type": "package",
+    "children": [
+      {
+        "name": "common",
+        "type": "package",
+        "children": [
+          {
+            "type": "class",
+            "name": "mongodb.validators",
+            "children": [
+              {
+                "type": "function",
+                "name": "mongoIdPathVariableValidator",
+                "static": true,
+                "location": "src\\validator\\common\\mongodb.validators.js:4"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "class",
+        "name": "message.validators",
+        "children": [
+          {
+            "type": "function",
+            "name": "sendMessageValidator",
+            "static": true,
+            "location": "src\\validator\\message.validators.js:3"
+          }
+        ]
+      }
+    ]
+  }
+]

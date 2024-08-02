@@ -5,7 +5,6 @@ import { ApiError } from "../utils/ApiError.js";
 import { User } from "../models/user.model.js";
 import { ACCESS_TOKEN_SECRET, SocketEventEnum } from "../constants.js";
 
-
 const initializeSocketIO = (io) => {
     return io.on("connection", async (socket) => {
         try {
@@ -38,11 +37,17 @@ const initializeSocketIO = (io) => {
             
             console.log("User connected 🗼. userId: ", user._id.toString());
             
-            socket.on(SocketEventEnum.DISCONNECT_EVENT, () => {
+            socket.on(SocketEventEnum.DISCONNECT_EVENT, async () => {
                 console.log("user has disconnected 🚫. userId: " + socket.user?._id);
                 if (socket.user?._id) {
                     socket.leave(socket.user._id);
                 }
+                await User.findByIdAndUpdate(
+                    user._id,
+                    {
+                        status:"Offline"
+                    }
+                )
             });
 
         } catch (error) {

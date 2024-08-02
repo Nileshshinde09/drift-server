@@ -57,6 +57,20 @@ const emailVerificationContent = (username, otp) => {
     };
 };
 
+const QueryMailToSupport = (subject, content) => {
+    return {
+        body: {
+            name: username,
+            intro: subject,
+            action: {
+                instructions:
+                content,
+            },
+            
+        },
+    };
+};
+
 const forgotPasswordContent = (username, passwordResetUrl) => {
     return {
         body: {
@@ -81,5 +95,6 @@ const forgotPasswordContent = (username, passwordResetUrl) => {
 export {
     forgotPasswordContent,
     emailVerificationContent,
-    sendMail
+    sendMail,
+    QueryMailToSupport
 }
