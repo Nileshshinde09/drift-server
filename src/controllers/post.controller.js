@@ -358,6 +358,57 @@ const getAllUserOwnedPosts = asyncHandler(
 
     }
 )
+const getAllRemoteUserPost= asyncHandler(
+    async (req, res) => {
+        const username = req.params.username;
+        const user =await User.findOne({username})
+        const {page=1,limit=3} = req?.query;
+        if (!user._id) throw new ApiError(
+            404,
+            "User not found, unauthorised access"
+        )
+        try {
+            const fetchedPost = await Posts.aggregate([
+                {
+                    $match: {
+                        ownerId: user?._id
+                    }
+                },
+                ...PostCommonAggregration(req?.user?._id)
+
+            ])
+            const options = {
+                page,
+                limit
+            };
+
+            Posts.aggregatePaginate(fetchedPost, options)
+                .then(function (result) {
+                    console.log(result.docs)
+                })
+                .catch(function (err) {
+                    console.log(err);
+                });
+            
+            return res.
+                status(200)
+                .json(
+                    new ApiResponse(
+                        200,
+                        {
+                            fetchedPost: fetchedPost
+                        },
+                        "Post fetched successfully!"
+                    )
+                )
+        } catch (error) {
+            throw new ApiError(
+                500,
+                error.message || "Something went wrong while getting the posts"
+            )
+        }
+    }
+)
 
 const getPostById = asyncHandler(
     async (req, res) => {
@@ -920,5 +971,6 @@ export {
     deletePost,
     getPostFeed,
     getAllUserOwnedPosts,
-    getPostById
+    getPostById,
+    getAllRemoteUserPost
 }

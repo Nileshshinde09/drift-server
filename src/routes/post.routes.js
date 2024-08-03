@@ -1,4 +1,4 @@
-import { uploadMultiple,uploadSingle,upload } from "../middlewares/multer.middleware.js";
+import { uploadMultiple, uploadSingle, upload } from "../middlewares/multer.middleware.js";
 import { Router } from "express";
 import { verifyJWT } from "../middlewares/auth.middleware.js";
 import { verifyIsOtpValidated } from "../middlewares/emailValidation.middlerware.js";
@@ -12,41 +12,44 @@ import {
     deletePost,
     getPostFeed,
     getAllUserOwnedPosts,
-    getPostById
+    getPostById,
+    getAllRemoteUserPost
 } from "../controllers/post.controller.js"
-const router = Router();
 
+const router = Router();
+router.use(verifyJWT, verifyIsOtpValidated)
 router.route("/create-post-with-images")
-    .post(verifyJWT, verifyIsOtpValidated, uploadMultiple, createPostWithImages)
+    .post(uploadMultiple, createPostWithImages)
 
 router.route("/create-post-with-video")
-    .post(verifyJWT, verifyIsOtpValidated, uploadSingle, createPostWithVideo)
+    .post(uploadSingle, createPostWithVideo)
 
 router.route("/get-all-posts")
-    .get(verifyJWT, verifyIsOtpValidated, getAllPost)
+    .get(getAllPost)
 
 router.route("/get-post-by-id")
-    .get(verifyJWT, verifyIsOtpValidated, getPostById)
+    .get(getPostById)
 
 router.route("/get-all-user-owned-posts")
-    .get(verifyJWT, verifyIsOtpValidated, getAllUserOwnedPosts)
+    .get(getAllUserOwnedPosts)
 
 router.route("/update-post-content")
-    .put(verifyJWT, verifyIsOtpValidated, updatePostContentByPostId)
+    .put(updatePostContentByPostId)
 
 router.route("/update-post-images")
-    .put(verifyJWT, verifyIsOtpValidated, uploadMultiple, updatePostImagesByPostId)
+    .put(uploadMultiple, updatePostImagesByPostId)
 
 router.route("/update-post-video")
-    .put(verifyJWT, verifyIsOtpValidated, upload.single('files'), updatePostVideosByPostId)
+    .put(upload.single('files'), updatePostVideosByPostId)
 
+router.route("/get-all-Remote-User-Post/:username")   
+    .get(getAllRemoteUserPost)
 
 router.route("/delete-post")
-    .delete(verifyJWT, verifyIsOtpValidated, deletePost)
+    .delete(deletePost)
 
 router.route("/get-feed-posts")
-    .get(verifyJWT, verifyIsOtpValidated,getPostFeed)
-    
-export default router
+    .get(getPostFeed)
 
+export default router
 
