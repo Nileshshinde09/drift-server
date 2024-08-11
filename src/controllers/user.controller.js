@@ -190,6 +190,7 @@ const findUsersByUsername = asyncHandler(
                 },
                 {
                     $project: {
+                        fullName:1,
                         username: 1,
                         avatar: 1,
                         email: 1,
@@ -397,7 +398,7 @@ const loginUser = asyncHandler(
             )
             if (!user) new ApiError(404, "User does not exist ")
 
-            const isPasswordWalid = user.isPasswordCorrect(password)
+            const isPasswordWalid = await user.isPasswordCorrect(password)
             if (!isPasswordWalid) throw new ApiError(401, "Invalid user credentials")
 
             const { accessToken, refreshToken } = await generateAccessAndRefreshTokens(user?._id)
@@ -811,5 +812,5 @@ export {
     createProfile,
     findUsersByUsername,
     resetForgotPassword,
-    sendResetForgotPasswordEmail,
+    sendResetForgotPasswordEmail
 }

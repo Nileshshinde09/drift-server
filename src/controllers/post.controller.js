@@ -389,6 +389,7 @@ const getAllRemoteUserPost= asyncHandler(
                 .catch(function (err) {
                     console.log(err);
                 });
+           
             
             return res.
                 status(200)
@@ -940,8 +941,11 @@ const getPostFeed = asyncHandler(
                         "Post with attachments removed successfully!"
                     )
                 )
+                console.log(followees);
+                
         processPosts(followees)
             .then((result) => {
+                
                 return res
                     .status(200)
                     .json(
