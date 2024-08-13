@@ -360,7 +360,7 @@ const getAllUserOwnedPosts = asyncHandler(
 )
 const getAllRemoteUserPost= asyncHandler(
     async (req, res) => {
-        const username = req.params.username;
+        const username = req.params?.username;
         const user =await User.findOne({username})
         const {page=1,limit=3} = req?.query;
         if (!user._id) throw new ApiError(

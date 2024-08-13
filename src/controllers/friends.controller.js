@@ -55,7 +55,7 @@ const makeAndRetrieveRequestByUserId = asyncHandler(
                 req.user._id.toString(),
                 NotificationMessages.FRIEND_REQUEST_MESSAGE,
                 "",
-                NotificationURLs.MAKE_REQUEST_URL + req.user.username?.toString(),
+                NotificationURLs.MAKE_REQUEST_URL + req.user?.username?.toString(),
                 NotificationTypesEnum.INDIVIDUAL,
                 receiverId?.toString(),
             )
@@ -124,7 +124,7 @@ const getRequestsAndInvitations = asyncHandler(
             //     {
             //         $project: {
             //             _id: "$requestedTo._id",
-            //             username: "$requestedTo.username",
+            //             username: "$requestedTo?.username",
             //             avatar: "$requestedTo.avatar",
             //             email: "$requestedTo.email",
             //             createdAt: "$requestedTo.createdAt",
@@ -167,7 +167,7 @@ const getRequestsAndInvitations = asyncHandler(
                 {
                     $project: {
                         _id: "$invitedBy._id",
-                        username: "$invitedBy.username",
+                        username: "$invitedBy?.username",
                         avatar: "$invitedBy.avatar",
                         email: "$invitedBy.email",
                         createdAt: "$invitedBy.createdAt",
@@ -220,7 +220,7 @@ const respondToInvitations = asyncHandler(
                     req.user._id.toString(),
                     NotificationMessages.FRIEND_REQUEST_REJECTED_MESSAGE,
                     "",
-                    NotificationURLs.MAKE_REQUEST_URL + req.user.username?.toString(),
+                    NotificationURLs.MAKE_REQUEST_URL + req.user?.username?.toString(),
                     NotificationTypesEnum.INDIVIDUAL,
                     response.sender?.toString(),
                 )
@@ -248,7 +248,7 @@ const respondToInvitations = asyncHandler(
                     req.user._id.toString(),
                     NotificationMessages.FRIEND_REQUEST_ACCEPTED_MESSAGE,
                     "",
-                    NotificationURLs.MAKE_REQUEST_URL + req.user.username?.toString(),
+                    NotificationURLs.MAKE_REQUEST_URL + req.user?.username?.toString(),
                     NotificationTypesEnum.INDIVIDUAL,
                     response.sender?.toString(),
 

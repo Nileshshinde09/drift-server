@@ -99,7 +99,7 @@ const createJJ = asyncHandler(
       ])
 
       const groupChat = await Chat.create({
-        name: req.user.username + " #" + "Journey Journals",
+        name: req.user?.username + " #" + "Journey Journals",
         isAnoGroupChat: true,
         topic,
         isAnoGroupChat: true,
@@ -138,7 +138,7 @@ const createJJ = asyncHandler(
         );
         sendNotifications(
           req.user._id.toString(),
-          NotificationMessages.JJ_CHAT_PARTICIPATION_MESSAGE + " " + participant.username,
+          NotificationMessages.JJ_CHAT_PARTICIPATION_MESSAGE + " " + participant?.username,
           content ? content : "",
           NotificationURLs.GROUP_CHAT_INITIALIZATION_URL + chat[0]._id.toString() + '/false',
           NotificationTypesEnum.INDIVIDUAL,
@@ -405,9 +405,9 @@ const joinParticipantInAnoGroupChat = asyncHandler(async (req, res) => {
   emitSocketEvent(req, participantId, ChatEventEnum.NEW_CHAT_EVENT, payload);
   sendNotifications(
     req.user._id.toString(),
-    NotificationMessages.JOIN_JJ + " " + "Participant : " + participant_Username.username,
+    NotificationMessages.JOIN_JJ + " " + "Participant : " + participant_Username?.username,
     content ? content : "",
-    NotificationURLs.MAKE_REQUEST_URL + participant_Username.username,
+    NotificationURLs.MAKE_REQUEST_URL + participant_Username?.username,
     NotificationTypesEnum.INDIVIDUAL,
     groupChat.admin.toString()
   )
@@ -617,7 +617,7 @@ const getUserJJFeed = asyncHandler(
         $project: {
           content: 1,
           createdAt: 1,
-          username: '$userDetails.username',
+          username: '$userDetails?.username',
           userAvatar:'$userDetails.avatar',
           topic:'$SpaceDetails.topic',
           members:'$SpaceDetails.participants',

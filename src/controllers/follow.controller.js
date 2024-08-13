@@ -7,7 +7,7 @@ import mongoose from "mongoose"
 const followOrUnfollowByUsername = asyncHandler(
     async (req, res) => {
         const follower = req.user
-        const username = req.params.username;
+        const username = req.params?.username;
         try {
             if (!username) throw new ApiError(
                 404,
@@ -83,7 +83,7 @@ const followOrUnfollowByUsername = asyncHandler(
 
 const getFollowersByUsername = asyncHandler(
     async (req, res) => {
-        const username = req.params.username
+        const username = req.params?.username
         if (!req.user) throw new ApiError(
             404,
             "User not found ,Unauthorised Access"
@@ -248,7 +248,7 @@ const getFolloweesByUsername = asyncHandler(
             404,
             "User not found ,Unauthorised Access"
         )
-        const username = req.params.username
+        const username = req.params?.username
         if (!username) throw new ApiError(
             404,
             "Username not found."
@@ -418,7 +418,7 @@ const isFollowed = asyncHandler(
                 404,
                 "User not found. Unauthorised request."
             )
-            const username = req.params.username
+            const username = req.params?.username
             console.log(username);
             if (!username) throw new ApiError(
                 404,

@@ -88,7 +88,7 @@ userSchema.methods.generateAccessToken= async function(){
         {
             _id: this._id,
             email: this.email,
-            username: this.username,
+            username: this?.username,
             fullName: this.fullName
         },
         ACCESS_TOKEN_SECRET,
@@ -102,7 +102,7 @@ userSchema.methods.generateResetPasswordSecurityToken = async function(){
     return jwt.sign(
       {
         _id:this._id,
-        username:this.username,
+        username:this?.username,
         email:this.email
       },
       RESET_FOROGT_PASSWORD_SECURITY_TOKEN_SECRET,

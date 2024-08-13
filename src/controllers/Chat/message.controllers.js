@@ -148,7 +148,7 @@ const sendMessage = asyncHandler(async (req, res) => {
     if(chat.isGroupChat){
       sendNotifications(
         req.user._id.toString(),
-        NotificationMessages.INDIVIDUAL_CHAT_MESSAGE+" "+participant_username.username,
+        NotificationMessages.INDIVIDUAL_CHAT_MESSAGE+" "+participant_username?.username,
         content?content:"",
         NotificationURLs.GROUP_CHAT_INITIALIZATION_URL+chat._id.toString()+'/false',
         NotificationTypesEnum.INDIVIDUAL,
@@ -157,7 +157,7 @@ const sendMessage = asyncHandler(async (req, res) => {
     }else{
       sendNotifications(
         req.user._id.toString(),
-        NotificationMessages.INDIVIDUAL_CHAT_MESSAGE+" "+participant_username.username,
+        NotificationMessages.INDIVIDUAL_CHAT_MESSAGE+" "+participant_username?.username,
         content?content:"",
         NotificationURLs.CHAT_INITIALIZATION_URL + participantObjectId.toString(),
         NotificationTypesEnum.INDIVIDUAL,

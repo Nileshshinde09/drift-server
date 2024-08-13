@@ -26,7 +26,7 @@ const TypingEvent = asyncHandler(async (req, res) => {
         // const participant_username = await User.findById(participantObjectId)
         // sendNotifications(
         //   req.user._id.toString(),
-        //   NotificationMessages.INDIVIDUAL_CHAT_MESSAGE+" "+participant_username.username,
+        //   NotificationMessages.INDIVIDUAL_CHAT_MESSAGE+" "+participant_username?.username,
         //   content?content:"",
         //   NotificationURLs.CHAT_INITIALIZATION_URL + participantObjectId.toString(),
         //   NotificationTypesEnum.INDIVIDUAL,
@@ -58,7 +58,7 @@ const StopTypingEvent = asyncHandler(async (req, res) => {
         // const participant_username = await User.findById(participantObjectId)
         // sendNotifications(
         //   req.user._id.toString(),
-        //   NotificationMessages.INDIVIDUAL_CHAT_MESSAGE+" "+participant_username.username,
+        //   NotificationMessages.INDIVIDUAL_CHAT_MESSAGE+" "+participant_username?.username,
         //   content?content:"",
         //   NotificationURLs.CHAT_INITIALIZATION_URL + participantObjectId.toString(),
         //   NotificationTypesEnum.INDIVIDUAL,

@@ -103,7 +103,7 @@ const validateOTP = asyncHandler(
 const findUsersByUsername = asyncHandler(
     async (req, res) => {
         const userId = req?.user?._id;
-        const username = req.query.username;
+        const username = req.query?.username;
         if (!userId) throw new ApiError(
             404,
             "User not found,unauthorised access."
@@ -349,7 +349,7 @@ const registerUser = asyncHandler(
 
 const isUsernameUnique = asyncHandler(
     async (req, res) => {
-        const username = req.query.username;
+        const username = req.query?.username;
         if (
             username.trim() == ""
         ) {
