@@ -259,7 +259,7 @@ const createPostWithVideo = asyncHandler(
             },
             ...PostCommonAggregration(req?.user?._id)
         ])
-        console.log(createdPost);
+        
         return res.
             status(200).
             json(
@@ -941,7 +941,6 @@ const getPostFeed = asyncHandler(
                         "Post with attachments removed successfully!"
                     )
                 )
-                console.log(followees);
                 
         processPosts(followees)
             .then((result) => {

@@ -24,7 +24,11 @@ export const verifyJWT = asyncHandler(async (req, _, next) => {
 
 export const verifyResetForgotPasswordJWT = asyncHandler(async (req, _, next) => {
     try {
+        console.log(req);
+        
         const token = req?.cookies?.resetforgotpasswordToken || req.header("Authorization")?.replace("Bearer ", "")
+        
+        
         if (!token) throw new ApiError(401, "Unauthorized request")
         const decodedToken = jwt.verify(token, RESET_FOROGT_PASSWORD_SECURITY_TOKEN_SECRET)
         const user = await User.findById(decodedToken?._id).select("-password -refreshToken")

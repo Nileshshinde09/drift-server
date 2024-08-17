@@ -223,7 +223,6 @@ const getJJChatAndPostDetails = asyncHandler(
         throw new ApiError(404, "Only admin can delete the group");
       }
   
-      console.log('Deleting chat and post');
       await Chat.findByIdAndDelete(post.space);
       await JourneyJournals.findByIdAndDelete(postId);
   
@@ -617,7 +616,7 @@ const getUserJJFeed = asyncHandler(
         $project: {
           content: 1,
           createdAt: 1,
-          username: '$userDetails?.username',
+          username: '$userDetails.username',
           userAvatar:'$userDetails.avatar',
           topic:'$SpaceDetails.topic',
           members:'$SpaceDetails.participants',

@@ -400,10 +400,8 @@ const loginUser = asyncHandler(
 
             const isPasswordWalid = await user.isPasswordCorrect(password)
             if (!isPasswordWalid) throw new ApiError(401, "Invalid user credentials")
-
             const { accessToken, refreshToken } = await generateAccessAndRefreshTokens(user?._id)
             const loggedInUser = await User.findById(user._id).select("-password -refreshToken")
-
             const options = {
                 httpOnly: true,
                 secure: true
