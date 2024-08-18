@@ -240,7 +240,7 @@ const respondToInvitations = asyncHandler(
                         status: true
                     }
                 )
-                if (response?._id) throw new ApiError(
+                if (!response._id) throw new ApiError(
                     404,
                     "Request not found with given Id"
                 )
