@@ -10,6 +10,7 @@ import mongoose from "mongoose"
 import { ForgotPassword } from "../models/forgotPassword.model.js"
 import { sendNotifications } from "../services/queue/notification.queue.js"
 import { emitSocketEvent } from "../socket/index.js"
+import { Images } from "../models/images.models.js"
 
 const validateOTP = asyncHandler(
     async (req, res) => {
@@ -228,6 +229,8 @@ const findUsersByUsername = asyncHandler(
 
     }
 )
+
+
 const createProfile = asyncHandler(
     async (req, res) => {
         const userId = req.user?._id;
@@ -396,10 +399,24 @@ const loginUser = asyncHandler(
                     ]
                 }
             )
-            if (!user) new ApiError(404, "User does not exist ")
+            if (!user) return res
+            .status(201)
+            .json( new ApiResponse(
+                404,
+                {
+                },
+                "User with this email id not found!"
+            ))
 
             const isPasswordWalid = await user.isPasswordCorrect(password)
-            if (!isPasswordWalid) throw new ApiError(401, "Invalid user credentials")
+            if (!isPasswordWalid) return res
+            .status(201)
+            .json( new ApiResponse(
+                401,
+                {
+                },
+                "Invalid user credentials"
+            ))
             const { accessToken, refreshToken } = await generateAccessAndRefreshTokens(user?._id)
             const loggedInUser = await User.findById(user._id).select("-password -refreshToken")
             const options = {
@@ -777,7 +794,6 @@ const resetForgotPassword = asyncHandler(
             .status(200)
             .json(new ApiResponse(200, {}, "Password changed successfully"))
     }
-
 )
 const resetForgotPasswordVerification = asyncHandler(
     async (req, res) => {
@@ -810,5 +826,5 @@ export {
     createProfile,
     findUsersByUsername,
     resetForgotPassword,
-    sendResetForgotPasswordEmail
+    sendResetForgotPasswordEmail    
 }

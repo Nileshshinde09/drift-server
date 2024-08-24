@@ -144,6 +144,7 @@ const createOrGetAOneOnOneChat = asyncHandler(async (req, res) => {
     {
       $match: {
         isGroupChat: false,
+        isAnoGroupChat:false,
         $and: [
           {
             participants: { $elemMatch: { $eq: req.user._id } },
@@ -158,7 +159,7 @@ const createOrGetAOneOnOneChat = asyncHandler(async (req, res) => {
     },
     ...chatCommonAggregation(),
   ]);
-
+  
   if (chat.length) {
     let urlId;
     let reciever_id;
