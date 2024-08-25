@@ -159,7 +159,7 @@ const sendMessage = asyncHandler(async (req, res) => {
         req.user._id.toString(),
         NotificationMessages.INDIVIDUAL_CHAT_MESSAGE+" "+participant_username?.username,
         content?content:"",
-        NotificationURLs.CHAT_INITIALIZATION_URL + participantObjectId.toString(),
+        NotificationURLs.CHAT_INITIALIZATION_URL + req?.user?.id.toString(),
         NotificationTypesEnum.INDIVIDUAL,
         participantObjectId.toString()
       )

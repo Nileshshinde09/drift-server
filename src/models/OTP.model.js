@@ -19,11 +19,18 @@ const otpSchema = new Schema({
 );
 
 otpSchema.methods.isOTPExpired = async function(){
-  return String(new Date(Date.now())) > String(this.ExpiryAt)
+  const currentTime = Date.now();
+  const expiryTime = this.ExpiryAt.getTime();
+
+  return new Date(currentTime).toISOString().split('T')[1] > new Date(expiryTime).toISOString().split('T')[1];
 }
 
 otpSchema.methods.isOTPCorrect = async function(incomingOTP){
-  return String(incomingOTP) == String(this.otp)
+  console.log(String(incomingOTP));
+  console.log(String(this.otp));
+
+  
+  return String(incomingOTP) === String(this.otp)
   }
 
 

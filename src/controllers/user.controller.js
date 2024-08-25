@@ -17,7 +17,6 @@ const validateOTP = asyncHandler(
         try {
             const userId = req?.user?._id
             const { incomingOTP } = req.body;
-            console.log(incomingOTP);
             if (!userId) throw new ApiError(
                 404,
                 "User Not Found!"
@@ -38,7 +37,7 @@ const validateOTP = asyncHandler(
                             "Already User validated 😎😎😊😊"
                         )
                     )
-            const otp = await OTP.findOne({ userId })
+            const otp = await OTP.findOne({ userId }).sort({ createdAt: -1 });
             if (!otp) throw new ApiError(
                 404,
                 "Opt not present in database"
@@ -415,7 +414,8 @@ const loginUser = asyncHandler(
                 401,
                 {
                 },
-                "Invalid user credentials"
+                // "Invalid user credential"
+                "Invalid Password."
             ))
             const { accessToken, refreshToken } = await generateAccessAndRefreshTokens(user?._id)
             const loggedInUser = await User.findById(user._id).select("-password -refreshToken")

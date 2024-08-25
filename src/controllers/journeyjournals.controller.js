@@ -339,7 +339,7 @@ const addNewParticipantInAnoGroupChat = asyncHandler(async (req, res) => {
   }
 
   // emit new chat event to the added participant
-  emitSocketEvent(req, participantId, ChatEventEnum.NEW_CHAT_EVENT, payload);
+  emitSocketEvent(req.app.get('io'), participantId, ChatEventEnum.NEW_CHAT_EVENT, payload);
 
   return res
     .status(200)
@@ -401,7 +401,7 @@ const joinParticipantInAnoGroupChat = asyncHandler(async (req, res) => {
   }
   const participant_Username = await User.findById(participantId);
   // emit new chat event to the added participant
-  emitSocketEvent(req, participantId, ChatEventEnum.NEW_CHAT_EVENT, payload);
+  emitSocketEvent(req.app.get('io'), participantId, ChatEventEnum.NEW_CHAT_EVENT, payload);
   sendNotifications(
     req.user._id.toString(),
     NotificationMessages.JOIN_JJ + " " + "Participant : " + participant_Username?.username,
@@ -452,7 +452,7 @@ const removeParticipantFromJJGroupChat = asyncHandler(async (req, res) => {
   if (!payload) {
     throw new ApiError(500, "Internal server error");
   }
-  emitSocketEvent(req, participantId, ChatEventEnum.LEAVE_CHAT_EVENT, payload)
+  emitSocketEvent(req.app.get('io'), participantId, ChatEventEnum.LEAVE_CHAT_EVENT, payload)
   return res
     .status(200)
     .json(new ApiResponse(200, payload, "Participant removed successfully"));
@@ -617,6 +617,7 @@ const getUserJJFeed = asyncHandler(
           content: 1,
           createdAt: 1,
           username: '$userDetails.username',
+          userId:'$userDetails._id',
           userAvatar:'$userDetails.avatar',
           topic:'$SpaceDetails.topic',
           members:'$SpaceDetails.participants',
